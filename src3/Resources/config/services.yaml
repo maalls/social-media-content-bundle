@@ -1,0 +1,42 @@
+services:
+
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: false  
+
+    Maalls\SocialMediaContentBundle\:
+        resource: '../../*'
+        exclude: '../../{Entity,Migrations,Tests}'
+
+    Maalls\SocialMediaContentBundle\Lib\TwitterCredential:
+        arguments:
+          $consumer_key: '%env(TWITTER_CONSUMER_KEY)%'
+          $consumer_secret: '%env(TWITTER_CONSUMER_SECRET)%'
+          $access_token: '%env(TWITTER_ACCESS_TOKEN)%'
+          $access_token_secret: '%env(TWITTER_ACCESS_TOKEN_SECRET)%'
+
+
+    Abraham\TwitterOAuth\TwitterOAuth:
+        arguments:
+          $consumerKey: '%env(TWITTER_CONSUMER_KEY)%'
+          $consumerSecret: '%env(TWITTER_CONSUMER_SECRET)%'
+          $oauthToken: '%env(TWITTER_ACCESS_TOKEN)%'
+          $oauthTokenSecret: '%env(TWITTER_ACCESS_TOKEN_SECRET)%'
+
+    Maalls\SocialMediaContentBundle\Lib\Firebase\Factory:
+      arguments:
+        $url: '%env(FIREBASE_DATABASE_URL)%'
+        $key: '%env(FIREBASE_API_KEY)%'
+
+    Maalls\SocialMediaContentBundle\Lib\Instagram\Factory:
+        arguments: 
+          $key: '%env(INSTAGRAM_API_KEY)%' 
+          $secret: '%env(INSTAGRAM_API_SECRET)%'
+          $callback: '%env(INSTAGRAM_API_CALLBACK)%'
+          $accessToken: '%env(INSTAGRAM_ACCESS_TOKEN)%'
+
+
+    Maalls\SocialMediaContentBundle\Lib\TwitterStreamFactory:
+      arguments:
+        $track: '%env(TWITTER_STREAM_TRACK)%'
