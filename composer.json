@@ -2,6 +2,17 @@
     "name" : "maalls/social-media-content-bundle",
     "description" : "Social Media Content Bundle",
     "type" : "symfony-bundle",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/maalls/phirehose"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/maalls/twitteroauth"
+        }
+
+    ],
     "authors" : [{
         "name" : "maalls",
         "email" : "maalls@gmail.com"
@@ -9,6 +20,15 @@
     "license" : [
         "MIT"
     ],
+
+    "require": {
+
+        "abraham/twitteroauth": "dev-fixes",
+        "cosenary/instagram": "^2.3",
+        "ktamas77/firebase-php": "^2.2",
+        "maalls/phirehose": "@dev"
+
+    },
     
     "autoload": {
         "psr-4": { 
