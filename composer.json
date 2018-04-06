@@ -1,6 +1,6 @@
 {
-    "name" : "maalls/heisig-bundle",
-    "description" : "Heisig Bundle",
+    "name" : "maalls/social-media-content-bundle",
+    "description" : "Social Media Content Bundle",
     "type" : "symfony-bundle",
     "authors" : [{
         "name" : "maalls",
@@ -12,8 +12,7 @@
     
     "autoload": {
         "psr-4": { 
-            "Maalls\\HeisigBundle\\": "src/", 
-            "Maalls\\HeisigBundle\\Tests\\": "tests/"
+            "Maalls\\SocialMediaContentBundle\\": "src/"
         }
     },
     "require-dev": {
