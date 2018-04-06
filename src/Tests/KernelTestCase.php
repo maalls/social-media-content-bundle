@@ -44,6 +44,8 @@ class KernelTestCase extends \Symfony\Bundle\FrameworkBundle\Test\KernelTestCase
 
         $this->truncate(\Maalls\SocialMediaContentBundle\Entity\Tweet::class);
         $this->truncate(\Maalls\SocialMediaContentBundle\Entity\TwitterUser::class);
+        $this->truncate(\Maalls\SocialMediaContentBundle\Entity\Search::class);
+        $this->truncate(\Maalls\SocialMediaContentBundle\Entity\InstagramCount::class);
 
     }
 

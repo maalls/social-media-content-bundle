@@ -5,7 +5,7 @@ namespace Maalls\SocialMediaContentBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="Maalls\SocialMediaContentBundle\Repository\TweetRepository")
+ * @ORM\Entity(repositoryClass="Maalls\SocialMediaContentBundle\Repository\SearchRepository")
  */
 class Search
 {
@@ -49,9 +49,15 @@ class Search
     private $created_at;
 
     /**
+    * @ORM\Column(type="datetime", nullable=true)
+    */
+    private $scheduled_at;
+
+    /**
     * @ORM\Column(type="datetime")
     */
     private $updated_at;
+
 
 
     /**
@@ -190,6 +196,26 @@ class Search
     public function setCreatedAt($created_at)
     {
         $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getScheduledAt()
+    {
+        return $this->scheduled_at;
+    }
+
+    /**
+     * @param mixed $scheduled_at
+     *
+     * @return self
+     */
+    public function setScheduledAt($scheduled_at)
+    {
+        $this->scheduled_at = $scheduled_at;
 
         return $this;
     }

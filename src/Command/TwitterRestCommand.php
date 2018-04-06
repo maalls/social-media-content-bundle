@@ -7,22 +7,22 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Maalls\SocialMediaContentBundle\Lib\LoggerOutputAdapter;
-use Maalls\SocialMediaContentBundle\Lib\TwitterStreamFactory;
+use Maalls\SocialMediaContentBundle\Lib\TwitterSearch;
 class TwitterRestCommand extends Command
 {
 
-    public function __construct(\Abraham\TwitterOAuth\TwitterOAuth $api)
+    public function __construct(\Abraham\TwitterOAuth\TwitterOAuth $rest)
     {
 
         parent::__construct();
-        $this->api = $api;
+        $this->rest = $rest;
 
     }
 
     protected function configure()
     {
         $this
-        ->setName('smc:twitter-rest')
+        ->setName('smc:twitter:rest')
         ->setDescription('Twitter rest tweets.')
         ;
 
@@ -31,7 +31,9 @@ class TwitterRestCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
-        $rsp = $this->api->get("search/tweets", ["q" => "hello"]);
+        $rsp = $this->rest->get("search/tweets", ["q" => "hello"]);
+
+        echo json_encode($rsp) . PHP_EOL;
 
     }
 

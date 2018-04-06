@@ -23,3 +23,20 @@ services:
           $consumerSecret: '%env(TWITTER_CONSUMER_SECRET)%'
           $oauthToken: '%env(TWITTER_ACCESS_TOKEN)%'
           $oauthTokenSecret: '%env(TWITTER_ACCESS_TOKEN_SECRET)%'
+
+    Maalls\SocialMediaContentBundle\Lib\Firebase\Factory:
+      arguments:
+        $url: '%env(FIREBASE_DATABASE_URL)%'
+        $key: '%env(FIREBASE_API_KEY)%'
+
+    Maalls\SocialMediaContentBundle\Lib\Instagram\Factory:
+        arguments: 
+          $key: '%env(INSTAGRAM_API_KEY)%' 
+          $secret: '%env(INSTAGRAM_API_SECRET)%'
+          $callback: '%env(INSTAGRAM_API_CALLBACK)%'
+          $accessToken: '%env(INSTAGRAM_ACCESS_TOKEN)%'
+
+
+    Maalls\SocialMediaContentBundle\Lib\TwitterStreamFactory:
+      arguments:
+        $track: '%env(TWITTER_STREAM_TRACK)%'

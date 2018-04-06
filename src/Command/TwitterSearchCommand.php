@@ -7,34 +7,33 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Maalls\SocialMediaContentBundle\Lib\LoggerOutputAdapter;
-use Maalls\SocialMediaContentBundle\Lib\TwitterStreamFactory;
-class TwitterStreamCommand extends Command
+use Maalls\SocialMediaContentBundle\Lib\TwitterSearch;
+
+class TwitterSearchCommand extends Command
 {
 
-    public function __construct(TwitterStreamFactory $factory)
+    public function __construct(TwitterSearch $search)
     {
 
         parent::__construct();
-        $this->stream = $factory->createStream();
+        $this->search = $search;
 
     }
 
     protected function configure()
     {
         $this
-        ->setName('smc:twitter:stream')
-        //->addArgument('track', InputArgument::REQUIRED, 'A list keywords to track.')
-        ->setDescription('Watch tweets.')
+        ->setName('smc:twitter:search')
+        ->setDescription('Twitter search tweets.')
         ;
 
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-
-        $this->stream->setLog(new LoggerOutputAdapter($output));
-        $this->stream->consume();
-
+        $output->writeln("Starting search");
+        $this->search->setLogger(new LoggerOutputAdapter($output));
+        $this->search->start();
 
     }
 

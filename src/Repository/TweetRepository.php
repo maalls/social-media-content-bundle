@@ -21,6 +21,32 @@ class TweetRepository extends ServiceEntityRepository
     }
 
 
+    public function countAll()
+    {
+
+        return $this->createQueryBuilder("t")
+                    ->select("count(t)")
+                    ->getQuery()
+                    ->getSingleScalarResult();
+
+    }
+
+
+    public function generateFromJsons($array)
+    {
+
+        $tweets = [];
+
+        foreach($array as $json) {
+
+            $tweets[] = $this->generateFromJson($json);
+
+        }
+
+        return $tweets;
+
+    }
+
     public function generateFromJson($t)
     {
         

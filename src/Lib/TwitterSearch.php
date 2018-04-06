@@ -2,176 +2,162 @@
 
 namespace Maalls\SocialMediaContentBundle\Lib;
 
+use Maalls\SocialMediaContentBundle\Entity\Tweet;
+use Maalls\SocialMediaContentBundle\Entity\Search;
+
 class TwitterSearch {
 
-    protected $api;
+    protected $em;
 
-    protected $pool;
+    protected $logger;
 
-    protected $db;
+    protected $period = 5;
 
-    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, Abraham\TwitterOAuth\TwitterOAuth $api) {
+    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, \Abraham\TwitterOAuth\TwitterOAuth $api) {
 
         $this->em = $em;
         $this->api = $api;
 
     }
 
-
-
-    // This will collect all the tweet between since_id and max_id.
-    // If max_id not define, it will collect from the lasted.
-    // If since_id is not defined, it will collect until no search results are returned.
-    // It also returns the new max_id and since_id.
-    // If there is no issue, max_id will be null and since_id set to the lastest.
-    // In case of issue (connection failure) max_id will be set to oldest tweet retrieved and since_id the same as passed as parameter.
-    // In this case iterate should be called again later including these parameters.
-
-    public function run()
+    public function start()
     {
-    
+        
+        $max_retry = 10;
         $retry = 0;
 
         do {
 
             try {
+                
+                $search = $this->em->getRepository(Search::class)->getNextTwitterSearch();
 
-                do {
+                if($search) {
 
-                    $this->log("Fetching search query.");
-
-                    $search = $this->em->getRepository(TwitterSearch::class)
-                        ->createQueryBuilder("ts")
-                        ->where("ts.scheduled_at < :now")
-                        ->orderBy("ts.scheduled_at", "ASC")
-                        ->getQuery()
-                        ->getOneOrNullResult();
-
-
-                    if($search) {
-
-                        $query = $search->getQuery();
-                        $since_id = $search->getSinceId();
-                        $max_id = $search->getMaxId();
-
-                        $this->log("Searching for $query from $since_id until $max_id");
-                        $rsp = $this->iterate($query, $since_id, $max_id);
-                        $this->log("Search done.");
-
-                        $search->setUpdateAt(new \Datetime());
-                        $search->setScheduledAt(new \Datetime(date("Y-m-d H:i:s", time() + 15)));
-
-                        $this->em->persist($search);
-
-                        $this->em->flush();
-
-                        $retry = 0;
-
-                    }
+                    $this->log("Searching search ID " . $search->getId() . " from " . $search->getMaxId() . " down to " . $search->getSinceId());
+                    $total = $this->paginate($search);
+                    $this->log("Search done, $total results collected.");
                     
-                    sleep(10);
 
                 }
-                while(true);
+                else {
+
+                    $this->log("No searches scheduled.");
+                    sleep(10);
+
+
+                }
+                
+                $retry = 0;
+
+
+            }
+            catch(Exception\Reschedule $e) {
+
+                $search->setScheduledAt($e->getScheduledAt());
+                $this->em->persists($search);
+                $this->em->flush();
 
             }
             catch(\Exception $e) {
 
-                $this->log("Search error $retry : " . $e->getMessage(), "error");
-                
-                if($retry >= 10) {
 
-                    throw $e;
-
-                }
+                $this->log("$retry / $max_retry Search error: " . $e->getMessage() . "(" . $e->getCode() . ")", "error");
                 $retry++;
-                sleep(2);
-
+                sleep(10);
                 
             }
 
         }
-        while(true);
+        while($retry < $max_retry);  
+
+        throw $e;
 
     }
 
-    public function iterate($query, $since_id = null, $max_id = null, $greatest_id = null) 
+    public function paginate($search) 
     {
 
-        $greatest_id = $since_id;
-        
-        $params = ["q" => $query, "result_type" => "recent", "count" => 100];
-
-        if($since_id) {
-
-            $params["since_id"] = $since_id - 1;
-
-        }
-
+        $total = 0;
         do {
 
-            if($max_id) {
-    
-                $params["max_id"] = $max_id;
-
-            }
-
-            //var_dump("Calling search api.");
-
-             $this->log("Calling search/tweets " . http_build_query($params));
-
-            $rsp = $this->api->get("search/tweets", $params);
-
-
-
-            try {
-
-                $this->parseError($rsp);
-
-            }
-            catch(\Exception $e) {
-
-                $this->log("Error " . $e->getMessage());
-                return ["max_id" => $max_id, "since_id" => $since_id];
-
-            }
-
-            $statuses = $rsp->statuses;
-            $count = count($statuses);
-
-            $this->log("Collected $count Tweet.");
-
-            if($count) {
-
-                $firstTweet = $statuses[0];
-
-                if($firstTweet->id_str > $greatest_id) {
-
-                    $greatest_id = $firstTweet->id_str + 1;
-
-                }
-
-                $lastTweet = $statuses[count($statuses) - 1];
-
-                $max_id = $lastTweet->id_str - 1;
-                $this->log($max_id);
-
-                
-
-            }
-
-            $this->pool->insert($statuses);
-
-            $stmt = $this->db->getConnection()->prepare("update search set max_id = ?, since_id = ?, greatest_id = ?, updated_at = ? where id = ?");
-            $stmt->execute([$max_id, $since_id, $greatest_id, date("Y-m-d H:i:s"), 1]);
-
+            $count = $this->iterate($search);
+            $total += $count;
 
         }
         while($count);
 
-        return ["max_id" => null, "since_id" => $greatest_id];
+        return $total;
+
+    }
+
+    public function iterate($search)
+    {
+
+        $params = $this->initializeParameters($search);
+        $this->log("Calling search/tweets " . http_build_query($params));
+        $rsp = $this->api->get("search/tweets", $params);
         
+        $this->parseError($rsp);
+
+        $statuses = $rsp->statuses;
+        $count = count($statuses);
+
+        if($count) {
+
+            $firstTweet = $statuses[0];
+
+            if($firstTweet->id_str > $search->getGreatestId()) {
+
+                $search->setGreatestId($firstTweet->id_str + 1);
+
+            }
+
+            $search->setMaxId($statuses[count($statuses) - 1]->id_str - 1);    
+
+        }
+
+        $this->em->getRepository(Tweet::class)->generateFromJsons($statuses);
         
+        $search->setUpdatedAt(new \Datetime());
+
+        if($count == 0) {
+
+            $search->setSinceId($search->getGreatestId());
+            $search->setMaxId(null);
+            $search->setScheduledAt(new \Datetime(date("Y-m-d H:i:s", time() + $this->period)));
+            
+        }
+
+        $search->setUpdatedAt(new \Datetime());
+        $this->em->persist($search);
+        $this->em->flush();
+
+        return $count;
+
+
+
+    }
+
+    public function initializeParameters($search)
+    {
+
+        $params = ["q" => $search->getQuery(), "result_type" => "recent", "count" => 100];
+
+        if($search->getSinceId()) {
+
+            $params["since_id"] = $search->getSinceId() - 1;
+
+        }
+
+        if($search->getMaxId()) {
+    
+            $params["max_id"] = $search->getMaxId();
+
+        }
+
+        return $params;
+
 
     }
 
@@ -181,8 +167,38 @@ class TwitterSearch {
         if(isset($response->errors)) {
 
             $error = $response->errors[0];
+
+            if($error->code == 88) {
+
+                throw new Exception\Reschedule($error->message, $error->code, new \Datetime(date("Y-m-d Hi:s", time() + 60)));
+
+            }
+
             throw new \Exception($error->message, $error->code);
             
+        }
+
+        if(!isset($response->statuses)) {
+
+            throw new \Exception("Unexpected response: " . json_encode($response), 1010);
+
+        }
+
+    }
+
+    public function setLogger($logger) {
+
+        $this->logger = $logger;
+
+    }
+
+    public function log($msg, $level = "info")
+    {
+
+        if($this->logger) {
+
+            $this->logger->log($msg, $level);
+
         }
 
     }
