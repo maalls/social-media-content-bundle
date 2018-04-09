@@ -8,6 +8,7 @@ class Api {
     private $credentials;
     private $nextIndex = 0;
     private $cacheLocation = '';
+    private $apiDatetime = null;
     
     public function __construct($twitter_credentials_file, $twitter_api_cache_folder = '') {
 
@@ -30,7 +31,7 @@ class Api {
 
         if($this->cacheLocation) {
             
-            $cache_file = $this->cacheLocation . "/" . sha1($action . "?" . http_build_query($parameters)) . ".json";
+            $cache_file = $this->getCacheFilename($action, $parameters);
 
             if(file_exists($cache_file)) {
 
@@ -40,25 +41,108 @@ class Api {
             else {
 
                 //echo "Calling API." . PHP_EOL;
-                $api = $this->create();
-                $rsp = $api->get($action, $parameters);
+                $rsp = $this->getFromApi($action, $parameters);
 
                 if(!isset($rsp->errors)) {
 
                     file_put_contents($cache_file, json_encode($rsp));
-
                 }
 
             }
+
+            $this->apiDatetime = $this->getCachedDatetime($action, $parameters);
+
         }
         else {
 
-            $api = $this->create();
-            $rsp = $api->get($action, $parameters);
+            $rsp = $this->getFromApi($action, $parameters);
+            $this->apiDatetime = new \Datetime();
 
         }
 
         return $rsp;
+
+    }
+
+    public function getFromApi($action, $parameters = []) 
+    {
+
+        $retry = 5;
+
+        for($i = 0; $i < $retry; $i++) {
+
+            try {
+
+                $api = $this->create();
+                return $api->get($action, $parameters);
+
+
+            }
+            catch(\Exception $e) {
+
+                
+                if($e->getCode() == 28) {
+
+                    $this->output->writeln("Connection timeout, retrying in 5sec.");
+                    sleep(5);
+                    $retry--;
+
+                }   
+                else {
+                    
+                    $this->output->writeln("Error " . get_class($e) . " : " . $e->getMessage(). " (" . $e->getCode() . ")");
+                    throw $e;
+
+                }
+
+            }
+
+        }
+
+        throw $e;
+
+    }
+
+    public function getApiDatetime()
+    {
+
+        return $this->apiDatetime;
+
+    }   
+
+    public function getCachedDatetime($action, $parameters = [])
+    {
+
+        if($this->cacheLocation) {
+
+            $cache_file = $this->getCacheFilename($action, $parameters);
+
+            if(file_exists($cache_file)) {
+
+                $time = filemtime($cache_file);
+
+                return new \Datetime(date("Y-m-d H:i:s", $time));
+
+            }
+            else {
+
+                return null;
+
+            }
+
+        }
+        else {
+
+            return false;
+
+        }
+
+    }
+
+    public function getCacheFilename($action, $parameters = [])
+    {
+
+        return $this->cacheLocation . "/" . sha1($action . "?" . http_build_query($parameters)) . ".json";
 
     }
 

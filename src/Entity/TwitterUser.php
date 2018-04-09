@@ -79,6 +79,11 @@ class TwitterUser
     /**
     * @ORM\Column(type="datetime", nullable=true)
     */
+    private $profile_updated_at;
+
+    /**
+    * @ORM\Column(type="datetime", nullable=true)
+    */
     private $timeline_updated_at;
 
     /**
@@ -331,6 +336,26 @@ class TwitterUser
     public function setListedCount($listed_count)
     {
         $this->listed_count = $listed_count;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProfileUpdatedAt()
+    {
+        return $this->profile_updated_at;
+    }
+
+    /**
+     * @param mixed $updated_at
+     *
+     * @return self
+     */
+    public function setProfileUpdatedAt($profile_updated_at)
+    {
+        $this->profile_updated_at = $profile_updated_at;
 
         return $this;
     }

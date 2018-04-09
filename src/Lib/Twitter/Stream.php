@@ -52,7 +52,7 @@ class Stream extends \OauthPhirehose
         try {
         
             $status = json_decode($status);
-            $tweet = $this->em->getRepository(Tweet::class)->generateFromJson($status);
+            $tweet = $this->em->getRepository(Tweet::class)->generateFromJson($status, new \Datetime());
             $this->em->flush();
             $this->log("status: " . $tweet->getId());
 

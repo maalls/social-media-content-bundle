@@ -4,6 +4,7 @@ namespace Maalls\SocialMediaContentBundle\Lib\Twitter;
 
 use Maalls\SocialMediaContentBundle\Entity\Tweet;
 use Maalls\SocialMediaContentBundle\Entity\Search as EntitySearch;
+use Maalls\SocialMediaContentBundle\Lib\Twitter\Api;
 
 class Search {
 
@@ -13,7 +14,7 @@ class Search {
 
     protected $period = 5;
 
-    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, \Abraham\TwitterOAuth\TwitterOAuth $api) {
+    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, Api $api) {
 
         $this->em = $em;
         $this->api = $api;
@@ -97,9 +98,9 @@ class Search {
         $params = $this->initializeParameters($search);
         $this->log("Calling search/tweets " . http_build_query($params));
         $rsp = $this->api->get("search/tweets", $params);
-        
         $this->parseError($rsp);
 
+        $searchDatetime = $this->api->getApiDatetime();
         $statuses = $rsp->statuses;
         $count = count($statuses);
 
@@ -117,7 +118,7 @@ class Search {
 
         }
 
-        $this->em->getRepository(Tweet::class)->generateFromJsons($statuses);
+        $this->em->getRepository(Tweet::class)->generateFromJsons($statuses, $searchDatetime);
         
         $search->setUpdatedAt(new \Datetime());
 

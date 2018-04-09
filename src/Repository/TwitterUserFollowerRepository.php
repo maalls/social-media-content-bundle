@@ -3,11 +3,10 @@
 namespace Maalls\SocialMediaContentBundle\Repository;
 
 use Maalls\SocialMediaContentBundle\Entity\TwitterUserFollower;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Maalls\SocialMediaContentBundle\Lib\Twitter\Api;
 
-class TwitterUserFollowerRepository extends ServiceEntityRepository
+class TwitterUserFollowerRepository extends LoggableServiceEntityRepository
 {
 
     protected $api;
@@ -20,6 +19,33 @@ class TwitterUserFollowerRepository extends ServiceEntityRepository
     }
 
 
+    public function generateFollowersFromTwitterUser($user, $force = false)
+    {
+
+        if($user->getFollowersUpdatedAt() && !$force) {
+
+            $this->log("Followers already collected.");
+
+        } 
+        else {
+
+            $cursor = null;
+            
+            do {
+
+                
+                $cursor = $this->generateFromCursor($user, $cursor, "followers");
+
+            }
+            while($cursor && $cursor != -1);
+
+        }
+
+    }
+
+
+
+
     public function generateFriendsFromTwitterUser($user)
     {
 
@@ -29,10 +55,11 @@ class TwitterUserFollowerRepository extends ServiceEntityRepository
         } 
         else {
 
-            do {
+            $cursor = null;
 
-                $cursor = null;
-                $cursor = $this->generateFriendsFromCursor($user->getId(), $cursor);
+            do {    
+                
+                $cursor = $this->generateFriendsFromCursor($user, $cursor);
 
             }
             while($cursor && $cursor != -1);
@@ -41,10 +68,20 @@ class TwitterUserFollowerRepository extends ServiceEntityRepository
 
     }
 
-    public function generateFriendsFromCursor($userId, $cursor = null)
+
+    public function generateFriendsFromCursor($user, $cursor)
     {
 
+        return $this->generateFromCursor($user, $cursor, "friends");
 
+    }
+
+    // relation = friends, followers
+    public function generateFromCursor($user, $cursor = null, $relation)
+    {
+
+        $this->log("Collecting from cursor " . $cursor);
+        $userId = $user->getId();
         /* rsp if protected class stdClass#473 (2) {
                   public $request =>
                   string(21) "/1.1/friends/ids.json"
@@ -56,16 +93,27 @@ class TwitterUserFollowerRepository extends ServiceEntityRepository
             $conn->beginTransaction();
 
             try{
-            
-                $rsp = $this->api->get("friends/ids", ["user_id" => $userId]);
+
+                $params = ["user_id" => $userId, "count" => 5000];
+                if($cursor) {
+
+                    $params["cursor"] = $cursor;
+
+                }
+
+                $rsp = $this->api->get($relation . "/ids", $params);
+                $relationUpdatedAt = $this->api->getApiDatetime();
+
 
                 if($rsp->ids) {
 
-                    $chunk = array_chunk($rsp->ids, 100);
+                    $chunks = array_chunk($rsp->ids, 100);
 
-                    foreach($chunk as $ids) {
+                    foreach($chunks as $k => $ids) {
 
+                        $this->log("collecting chunk " . $k . " / " . count($chunks) . " memory: " . round(memory_get_usage(true)/1024/1024) . "Mb");
                         $lookup = $this->api->get("users/lookup", ["user_id" => implode(",", $ids)]);
+                        $profileUpdatedAt = $this->api->getApiDatetime();
 
 
                         if(!is_array($lookup)) {
@@ -78,8 +126,11 @@ class TwitterUserFollowerRepository extends ServiceEntityRepository
                             'id', 'name', 'screen_name', 
                             'description', 'lang', 'location', 
                             'verified', 'protected', 'followers_count', 
-                            'friends_count', 'listed_count', 'updated_at'
+                            'friends_count', 'listed_count', 'updated_at',
+                            'profile_updated_at'
                         ];
+
+                        $followerFields = ["follower_id", "twitter_user_id", "created_at", "updated_at"];
 
                         $params = [];
                         $now = date("Y-m-d H:i:s");
@@ -103,11 +154,25 @@ class TwitterUserFollowerRepository extends ServiceEntityRepository
                             $params[] = $profile->friends_count;
                             $params[] = $profile->listed_count;
                             $params[] = $now;
+                            $params[] = $profileUpdatedAt->format("Y-m-d H:i:s");
 
-                            $followerParams[] = $userId;
-                            $followerParams[] = $profile->id_str;
+                            switch($relation) {
+                                case 'friends':
+                                    $followerParams[] = $userId;
+                                    $followerParams[] = $profile->id_str;
+                                    break;
+                                case 'followers':
+
+                                    $followerParams[] = $profile->id_str;
+                                    $followerParams[] = $userId;
+                                    break;
+                                default:
+                                    throw new Exception("Invalid relation $relation");
+                                    
+                            }
+
                             $followerParams[] = $now;
-                            $followerParams[] = $now;
+                            $followerParams[] = $profileUpdatedAt->format("Y-m-d H:i:s");
 
                             $founds[] = $profile->id_str;
 
@@ -131,28 +196,50 @@ class TwitterUserFollowerRepository extends ServiceEntityRepository
                             $params[] = '';
                             $params[] = '';
                             $params[] = $now;
+                            $params[] = $profileUpdatedAt->format("Y-m-d H:i:s");
 
-                            $followerParams[] = $userId;
-                            $followerParams[] = $id;
+                            switch($relation) {
+                                case 'friends':
+                                    $followerParams[] = $userId;
+                                    $followerParams[] = $id;
+                                    break;
+                                case 'followers':
+
+                                    $followerParams[] = $id;
+                                    $followerParams[] = $userId;
+                                    break;
+                                default:
+                                    throw new Exception("Invalid relation $relation");
+                                    
+                            }
+
+
                             $followerParams[] = $now;
-                            $followerParams[] = $now;
+                            $followerParams[] = $profileUpdatedAt->format("Y-m-d H:i:s");
 
                         }
 
                         $this->insert($conn, "twitter_user", $fields, $params, "id = id");
 
-                        $followerFields = ["follower_id", "twitter_user_id", "created_at", "updated_at"];
+                        
                         $this->insert($conn, "twitter_user_follower", $followerFields, $followerParams, "updated_at = '$now'");
 
                     }
 
 
+                    $this->log(count($rsp->ids) . " followers added.");
+
                 }
                 else {
 
                     // to handle.
+                    var_dump($rsp);
+                    throw new \Exception(json_encode($rsp));
 
                 }
+
+                $stmt = $conn->prepare("update twitter_user set " . $relation . "_updated_at = ? where id = ?");
+                $stmt->execute([$relationUpdatedAt->format("Y-m-d H:i:s"), $user->getId()]);
 
                 // do stuff
                 $conn->commit();
@@ -164,7 +251,19 @@ class TwitterUserFollowerRepository extends ServiceEntityRepository
 
             }
 
-            return isset($rsp->cursor) ? $rsp->cursor : -1;
+            
+            if(isset($rsp->next_cursor_str)) {
+
+                $this->log("Next cursor : " . $rsp->next_cursor_str);
+
+                return $rsp->next_cursor_str;
+
+            } 
+            else {
+
+                $this->log("No more cursor.");
+             
+            }
 
 
     }

@@ -25,7 +25,7 @@ class SearchTest extends KernelTestCase
         $em->persist($search);
         $em->flush();
 
-        $apiMock = $this->createMock(\Abraham\TwitterOAuth\TwitterOAuth::class);
+        $apiMock = $this->createMock(\Maalls\SocialMediaContentBundle\Lib\Twitter\Api::class);
 
         $twitterSearch = new TwitterSearch($em, $apiMock);
         
@@ -58,8 +58,9 @@ class SearchTest extends KernelTestCase
 
         count($json->statuses);
 
-        $apiMock = $this->createMock(\Abraham\TwitterOAuth\TwitterOAuth::class);
+        $apiMock = $this->createMock(\Maalls\SocialMediaContentBundle\Lib\Twitter\Api::class);
         $apiMock->method('get')->willReturn($json);
+        $apiMock->method('getApiDatetime')->willReturn(new \Datetime());
         $twitterSearch = new TwitterSearch($em, $apiMock);
 
         $count = $twitterSearch->iterate($search);

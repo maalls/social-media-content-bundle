@@ -12,7 +12,7 @@ class LoggerOutputAdapter {
         $this->output = $output;
 
     }
-    public function log($msg, $level) {
+    public function log($msg, $level = 'info') {
 
         $this->output->writeln(date("Y-m-d H:i:s") . " [$level] $msg");
 

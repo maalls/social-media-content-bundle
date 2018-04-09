@@ -32,14 +32,14 @@ class TweetRepository extends ServiceEntityRepository
     }
 
 
-    public function generateFromJsons($array)
+    public function generateFromJsons($array, $dataDatetime)
     {
 
         $tweets = [];
 
         foreach($array as $json) {
 
-            $tweets[] = $this->generateFromJson($json);
+            $tweets[] = $this->generateFromJson($json, $dataDatetime);
 
         }
 
@@ -47,7 +47,7 @@ class TweetRepository extends ServiceEntityRepository
 
     }
 
-    public function generateFromJson($t)
+    public function generateFromJson($t, $dataDatetime)
     {
         
         $tweet = $this->find($t->id_str);
@@ -60,7 +60,7 @@ class TweetRepository extends ServiceEntityRepository
 
         }
 
-        $user = $this->getEntityManager()->getRepository(TwitterUser::class)->generateFromJson($t->user);
+        $user = $this->getEntityManager()->getRepository(TwitterUser::class)->generateFromJson($t->user, $dataDatetime);
             
         $tweet->setUser($user);
         $tweet->setText($t->text);
@@ -69,12 +69,12 @@ class TweetRepository extends ServiceEntityRepository
         $tweet->setIsQuoteStatus($t->is_quote_status);
         $tweet->setRetweetCount($t->retweet_count);
         $tweet->setFavoriteCount($t->favorite_count);
-        $tweet->setStatsUpdatedAt(new \Datetime());
+        $tweet->setStatsUpdatedAt($dataDatetime);
         $tweet->setPostedAt(new \Datetime($t->created_at));
 
         if(isset($t->retweeted_status)) {
 
-            $retweetStatus = $this->generateFromJson($t->retweeted_status);
+            $retweetStatus = $this->generateFromJson($t->retweeted_status, $dataDatetime);
             $tweet->setRetweetStatus($retweetStatus);
 
         }

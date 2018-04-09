@@ -26,7 +26,8 @@ class TwitterStreamTest extends KernelTestCase
 
         $em = $this->getEntityManager();
         $rep = $em->getRepository(Tweet::class);
-        $tweet = $rep->generateFromJson($json);
+        $dataDatetime = new \Datetime("2018-01-02 06:05:04");
+        $tweet = $rep->generateFromJson($json, $dataDatetime);
 
         $em->flush();
 
@@ -35,6 +36,8 @@ class TwitterStreamTest extends KernelTestCase
         $tweet = $em->getRepository(Tweet::class)->find($json->id_str);
 
         $this->assertEquals($json->id_str, $tweet->getId());
+
+        $this->assertEquals($dataDatetime->format("Y-m-d H:i:s"), $tweet->getStatsUpdatedAt()->format("Y-m-d H:i:s"));
 
     }
 
