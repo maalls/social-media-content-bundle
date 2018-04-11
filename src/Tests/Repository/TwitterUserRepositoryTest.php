@@ -12,6 +12,48 @@ use Maalls\SocialMediaContentBundle\Entity\Tweet;
 class TwitterUserRepositoryTest extends KernelTestCase
 {
 
+
+    public function testUpdateProfiles()
+    {
+
+        $this->truncateAll();
+
+        $rep = $this->em->getRepository(TwitterUser::class);
+        
+        $user = new TwitterUser();
+        $user->setId(7812392); // USN
+        $user->setUpdatedAt(new \Datetime());
+        $user->setStatus(200);
+        $this->em->persist($user);
+
+        $user = new TwitterUser();
+        $user->setId(1079156989); // LenzDev
+        $user->setUpdatedAt(new \Datetime());
+        $user->setStatus(200);
+        $this->em->persist($user);
+
+        $user = new TwitterUser();
+        $user->setId(12343248734); // 404
+        $user->setStatus(200);
+        $user->setUpdatedAt(new \Datetime());
+        $this->em->persist($user);
+
+        $user = new TwitterUser();
+        $user->setId(1234324873288884); // already updated
+        $user->setUpdatedAt(new \Datetime());
+        $user->setProfileUpdatedAt(new \Datetime());
+        $this->em->persist($user);
+
+        $this->em->flush();
+
+        $count = $rep->updateProfiles();
+
+        $this->assertEquals(3, $count);
+
+
+
+    }
+
     public function testGenerateFromScreenName()
     {
 

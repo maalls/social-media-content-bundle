@@ -5,6 +5,7 @@ namespace Maalls\SocialMediaContentBundle\Repository;
 use Maalls\SocialMediaContentBundle\Entity\TwitterUserFollower;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Maalls\SocialMediaContentBundle\Lib\Twitter\Api;
+use Maalls\SocialMediaContentBundle\Lib\SqlHelper;
 
 class TwitterUserFollowerRepository extends LoggableServiceEntityRepository
 {
@@ -29,8 +30,8 @@ class TwitterUserFollowerRepository extends LoggableServiceEntityRepository
         } 
         else {
 
-            $cursor = null;
-            
+            $cursor = 1440771217574818876;
+
             do {
 
                 
@@ -82,215 +83,125 @@ class TwitterUserFollowerRepository extends LoggableServiceEntityRepository
 
         $this->log("Collecting from cursor " . $cursor);
         $userId = $user->getId();
-        /* rsp if protected class stdClass#473 (2) {
-                  public $request =>
-                  string(21) "/1.1/friends/ids.json"
-                  public $error =>
-                  string(15) "Not authorized."
-                }
-            */
-            $conn = $this->getEntityManager()->getConnection();
-            $conn->beginTransaction();
+        
+        $params = ["user_id" => $userId, "count" => 5000];
+        if($cursor) {
 
-            try{
-
-                $params = ["user_id" => $userId, "count" => 5000];
-                if($cursor) {
-
-                    $params["cursor"] = $cursor;
-
-                }
-
-                $rsp = $this->api->get($relation . "/ids", $params);
-                $relationUpdatedAt = $this->api->getApiDatetime();
-
-
-                if($rsp->ids) {
-
-                    $chunks = array_chunk($rsp->ids, 100);
-
-                    foreach($chunks as $k => $ids) {
-
-                        $this->log("collecting chunk " . $k . " / " . count($chunks) . " memory: " . round(memory_get_usage(true)/1024/1024) . "Mb");
-                        $lookup = $this->api->get("users/lookup", ["user_id" => implode(",", $ids)]);
-                        $profileUpdatedAt = $this->api->getApiDatetime();
-
-
-                        if(!is_array($lookup)) {
-
-                            throw new \Exception(json_encode($lookup));
-
-                        }
-
-                        $fields = [
-                            'id', 'name', 'screen_name', 
-                            'description', 'lang', 'location', 
-                            'verified', 'protected', 'followers_count', 
-                            'friends_count', 'listed_count', 'updated_at',
-                            'profile_updated_at'
-                        ];
-
-                        $followerFields = ["follower_id", "twitter_user_id", "created_at", "updated_at"];
-
-                        $params = [];
-                        $now = date("Y-m-d H:i:s");
-
-                        $founds = [];
-
-
-
-
-                        foreach($lookup as $profile) {
-
-                            $params[] = $profile->id_str;
-                            $params[] = $profile->name;
-                            $params[] = $profile->screen_name;
-                            $params[] = $profile->description;
-                            $params[] = $profile->lang;
-                            $params[] = $profile->location;
-                            $params[] = $profile->verified ? 1: 0;
-                            $params[] = $profile->protected ? 1 : 0;
-                            $params[] = $profile->followers_count;
-                            $params[] = $profile->friends_count;
-                            $params[] = $profile->listed_count;
-                            $params[] = $now;
-                            $params[] = $profileUpdatedAt->format("Y-m-d H:i:s");
-
-                            switch($relation) {
-                                case 'friends':
-                                    $followerParams[] = $userId;
-                                    $followerParams[] = $profile->id_str;
-                                    break;
-                                case 'followers':
-
-                                    $followerParams[] = $profile->id_str;
-                                    $followerParams[] = $userId;
-                                    break;
-                                default:
-                                    throw new Exception("Invalid relation $relation");
-                                    
-                            }
-
-                            $followerParams[] = $now;
-                            $followerParams[] = $profileUpdatedAt->format("Y-m-d H:i:s");
-
-                            $founds[] = $profile->id_str;
-
-                            
-
-                        }
-
-                        $notFounds = array_diff($ids, $founds);
-
-                        foreach($notFounds as $id) {
-
-                            $params[] = $id;
-                            $params[] = '';
-                            $params[] = '';
-                            $params[] = '';
-                            $params[] = '';
-                            $params[] = '';
-                            $params[] = null;
-                            $params[] = null;
-                            $params[] = '';
-                            $params[] = '';
-                            $params[] = '';
-                            $params[] = $now;
-                            $params[] = $profileUpdatedAt->format("Y-m-d H:i:s");
-
-                            switch($relation) {
-                                case 'friends':
-                                    $followerParams[] = $userId;
-                                    $followerParams[] = $id;
-                                    break;
-                                case 'followers':
-
-                                    $followerParams[] = $id;
-                                    $followerParams[] = $userId;
-                                    break;
-                                default:
-                                    throw new Exception("Invalid relation $relation");
-                                    
-                            }
-
-
-                            $followerParams[] = $now;
-                            $followerParams[] = $profileUpdatedAt->format("Y-m-d H:i:s");
-
-                        }
-
-                        $this->insert($conn, "twitter_user", $fields, $params, "id = id");
-
-                        
-                        $this->insert($conn, "twitter_user_follower", $followerFields, $followerParams, "updated_at = '$now'");
-
-                    }
-
-
-                    $this->log(count($rsp->ids) . " followers added.");
-
-                }
-                else {
-
-                    // to handle.
-                    var_dump($rsp);
-                    throw new \Exception(json_encode($rsp));
-
-                }
-
-                $stmt = $conn->prepare("update twitter_user set " . $relation . "_updated_at = ? where id = ?");
-                $stmt->execute([$relationUpdatedAt->format("Y-m-d H:i:s"), $user->getId()]);
-
-                // do stuff
-                $conn->commit();
-
-            } catch (\Exception $e) {
-
-                $conn->rollBack();
-                throw $e;
-
-            }
-
-            
-            if(isset($rsp->next_cursor_str)) {
-
-                $this->log("Next cursor : " . $rsp->next_cursor_str);
-
-                return $rsp->next_cursor_str;
-
-            } 
-            else {
-
-                $this->log("No more cursor.");
-             
-            }
-
-
-    }
-
-    public function insert($conn, $table, $fields, $parameters, $onDuplicateKey = '') {
-
-        $entryCount = count($parameters) / count($fields);
-
-        if($entryCount != round(count($parameters) / count($fields))) {
-
-            throw new \Exception("Number of Fields and parameters not compatible.");
+            $params["cursor"] = $cursor;
 
         }
 
-        $values = trim(str_repeat("?,", count($fields)), ",");
-        $values = trim(str_repeat("($values),", $entryCount), ",");
+        $rsp = $this->api->get($relation . "/ids", $params);
+        $relationUpdatedAt = $this->api->getApiDatetime();
 
-        $onDuplicateKey = $onDuplicateKey ? " ON DUPLICATE KEY UPDATE $onDuplicateKey" : '';
 
-        $query = "insert into $table (`" . implode("`, `", $fields) . "`) values " . $values . " $onDuplicateKey";
+        if(isset($rsp->ids)) {
 
-        $stmt = $conn->prepare($query);
-        $stmt->execute($parameters);
+            $this->log("Insering " . count($rsp->ids) . " " . $relation . " " . round(memory_get_usage(true) / 1024/1024) . "Mb used.");
+            $this->insertRelation($user, $rsp->ids, $relation, $relationUpdatedAt);
+            
+        }
+        else {
 
-        return $stmt;
+            // to handle.
+            var_dump($rsp);
+            throw new \Exception(json_encode($rsp));
+
+        }
+
+        if(isset($rsp->next_cursor_str)) {
+
+            $this->log("Next cursor : " . $rsp->next_cursor_str);
+
+            return $rsp->next_cursor_str;
+
+        } 
+        else {
+
+            $this->log("No more cursor.");
+         
+        }
+
 
     }
 
+    public function insertRelation($user, $ids, $relation, $relationUpdatedAt)
+    {
+
+
+        $conn = $this->getEntityManager()->getConnection();
+        $conn->getConfiguration()->setSQLLogger(null);
+        $conn->beginTransaction();
+
+        $fields = ["id", "updated_at", "status"];
+        $followerFields = ["follower_id", "twitter_user_id", "created_at", "updated_at"];
+        $now = date("Y-m-d H:i:s");
+
+        $params = [];
+        $followerParams = [];
+
+        foreach($ids as $id) {
+
+            $params[] = $id;
+            $params[] = $now;
+            $params[] = 200;
+
+            switch($relation) {
+                case 'friends':
+                    $followerParams[] = $user->getId();
+                    $followerParams[] = $id;
+                    break;
+                case 'followers':
+                    $followerParams[] = $id;
+                    $followerParams[] = $user->getId();
+                    break;
+                default:
+                    throw new Exception("Invalid relation $relation");
+
+            }
+            $followerParams[] = $now;
+            $followerParams[] = $now;
+
+        }
+
+        $retry = 10;
+        do {
+            try {
+            
+                SqlHelper::insert($conn, "twitter_user", $fields, $params, "id = id");
+                SqlHelper::insert($conn, "twitter_user_follower", $followerFields, $followerParams, "updated_at = '$now'");
+
+                $stmt = $conn->prepare("update twitter_user set " . $relation . "_updated_at = ? where id = ?");
+                $stmt->execute([$relationUpdatedAt->format("Y-m-d H:i:s"), $user->getId()]);
+                $conn->commit();
+
+                return;
+
+            }
+            catch(\Doctrine\DBAL\Exception\DeadlockException $e) {
+
+                $retry--;
+                
+                if($retry) {
+                
+                    $this->log("deadlock found, trying again in few sec.");
+                    sleep(2);
+                
+                }
+
+            }
+            catch(\Exception $e) {
+
+                $conn->rollBack();
+                throw $e;            
+
+            }
+
+        }
+        while($retry);
+
+        throw new \Exception("Too many retry.");
+
+    }
 
 }

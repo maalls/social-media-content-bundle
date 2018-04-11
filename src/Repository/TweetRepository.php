@@ -49,6 +49,11 @@ class TweetRepository extends ServiceEntityRepository
 
     public function generateFromJson($t, $dataDatetime)
     {
+        if(!isset($t->user)) {
+
+            throw new \Exception("Hu?");
+
+        }
         
         $tweet = $this->find($t->id_str);
 
@@ -60,27 +65,30 @@ class TweetRepository extends ServiceEntityRepository
 
         }
 
-        $user = $this->getEntityManager()->getRepository(TwitterUser::class)->generateFromJson($t->user, $dataDatetime);
-            
-        $tweet->setUser($user);
-        $tweet->setText($t->text);
-        $tweet->setLanguage($t->lang);
-        $tweet->setInReplyToStatusId($t->in_reply_to_status_id);
-        $tweet->setIsQuoteStatus($t->is_quote_status);
-        $tweet->setRetweetCount($t->retweet_count);
-        $tweet->setFavoriteCount($t->favorite_count);
-        $tweet->setStatsUpdatedAt($dataDatetime);
-        $tweet->setPostedAt(new \Datetime($t->created_at));
+        if(!$tweet->getStatsUpdatedAt() || $tweet->getStatsUpdatedAt()->format("U") < $dataDatetime->format("U")) {
 
-        if(isset($t->retweeted_status)) {
+            $user = $this->getEntityManager()->getRepository(TwitterUser::class)->generateFromJson($t->user, $dataDatetime);
+                
+            $tweet->setUser($user);
+            $tweet->setText($t->text);
+            $tweet->setLanguage($t->lang);
+            $tweet->setInReplyToStatusId($t->in_reply_to_status_id);
+            $tweet->setIsQuoteStatus($t->is_quote_status);
+            $tweet->setRetweetCount($t->retweet_count);
+            $tweet->setFavoriteCount($t->favorite_count);
+            $tweet->setStatsUpdatedAt($dataDatetime);
+            $tweet->setPostedAt(new \Datetime($t->created_at));
 
-            $retweetStatus = $this->generateFromJson($t->retweeted_status, $dataDatetime);
-            $tweet->setRetweetStatus($retweetStatus);
+            if(isset($t->retweeted_status)) {
+
+                $retweetStatus = $this->generateFromJson($t->retweeted_status, $dataDatetime);
+                $tweet->setRetweetStatus($retweetStatus);
+
+            }
+
+            $this->getEntityManager()->persist($tweet);
 
         }
-
-        $this->getEntityManager()->persist($tweet);
-
 
         return $tweet;
 

@@ -6,8 +6,12 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="Maalls\SocialMediaContentBundle\Repository\TwitterUserRepository")
- * @ORM\Table(indexes={@ORM\Index(name="screen_name", columns={"screen_name"})})
-
+ * @ORM\Table(indexes={
+ *   @ORM\Index(name="screen_name", columns={"screen_name"}),
+ *   @ORM\Index(name="lang", columns={"lang", "followers_count"}),
+ *   @ORM\Index(name="status", columns={"status", "profile_updated_at"})
+ * })
+ *
  */
 class TwitterUser
 {
@@ -21,12 +25,12 @@ class TwitterUser
 
 
     /**
-    * @ORM\Column(type="string", length=64)
+    * @ORM\Column(type="string", length=64, nullable=true)
     */
     private $name = '';
 
     /**
-    * @ORM\Column(type="string", length=64)
+    * @ORM\Column(type="string", length=64, nullable=true)
     */
     private $screen_name = '';
 
@@ -47,27 +51,32 @@ class TwitterUser
 
 
     /**
-    * @ORM\Column(type="boolean")
+    * @ORM\Column(type="string", length=1024, nullable=true)
     */
-    private $verified = false;
+    protected $url = '';
 
     /**
-    * @ORM\Column(type="boolean")
+    * @ORM\Column(type="boolean", nullable=true)
     */
-    private $protected = false;
+    private $verified;
 
     /**
-     * @ORM\Column(type="bigint", options={"unsigned"=true})
+    * @ORM\Column(type="boolean", nullable=true)
+    */
+    private $protected;
+
+    /**
+     * @ORM\Column(type="bigint", options={"unsigned"=true}, nullable=true)
      */
     private $followers_count = 0;
 
     /**
-     * @ORM\Column(type="bigint", options={"unsigned"=true})
+     * @ORM\Column(type="bigint", options={"unsigned"=true}, nullable=true)
      */
     private $friends_count = 0;
 
     /**
-     * @ORM\Column(type="integer", options={"unsigned"=true})
+     * @ORM\Column(type="integer", options={"unsigned"=true}, nullable=true)
      */
     private $listed_count = 0;
 
@@ -111,6 +120,11 @@ class TwitterUser
      */
     private $followers;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $status = 200;
+
     public function __construct() {
     
         $this->tweets = new \Doctrine\Common\Collections\ArrayCollection();
@@ -119,6 +133,8 @@ class TwitterUser
     
     }
 
+
+   
 
     /**
      * @return mixed
@@ -243,6 +259,26 @@ class TwitterUser
     /**
      * @return mixed
      */
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
+    /**
+     * @param mixed $url
+     *
+     * @return self
+     */
+    public function setUrl($url)
+    {
+        $this->url = $url;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getVerified()
     {
         return $this->verified;
@@ -343,26 +379,6 @@ class TwitterUser
     /**
      * @return mixed
      */
-    public function getProfileUpdatedAt()
-    {
-        return $this->profile_updated_at;
-    }
-
-    /**
-     * @param mixed $updated_at
-     *
-     * @return self
-     */
-    public function setProfileUpdatedAt($profile_updated_at)
-    {
-        $this->profile_updated_at = $profile_updated_at;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getUpdatedAt()
     {
         return $this->updated_at;
@@ -376,6 +392,26 @@ class TwitterUser
     public function setUpdatedAt($updated_at)
     {
         $this->updated_at = $updated_at;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProfileUpdatedAt()
+    {
+        return $this->profile_updated_at;
+    }
+
+    /**
+     * @param mixed $profile_updated_at
+     *
+     * @return self
+     */
+    public function setProfileUpdatedAt($profile_updated_at)
+    {
+        $this->profile_updated_at = $profile_updated_at;
 
         return $this;
     }
@@ -496,6 +532,26 @@ class TwitterUser
     public function setFollowers($followers)
     {
         $this->followers = $followers;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
+    /**
+     * @param mixed $status
+     *
+     * @return self
+     */
+    public function setStatus($status)
+    {
+        $this->status = $status;
 
         return $this;
     }

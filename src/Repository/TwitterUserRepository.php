@@ -8,6 +8,8 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Maalls\SocialMediaContentBundle\Lib\Twitter\Api;
 use Maalls\SocialMediaContentBundle\Repository\LoggableServiceEntityRepository;
+use Maalls\SocialMediaContentBundle\Lib\SqlHelper;
+
 /**
  * @method TwitterUser|null find($id, $lockMode = null, $lockVersion = null)
  * @method TwitterUser|null findOneBy(array $criteria, array $orderBy = null)
@@ -25,14 +27,199 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
         parent::__construct($registry, TwitterUser::class);
     }
 
+    public function setLogger($logger)
+    {
 
-    public function updateTimeline($user)
+        $this->api->setLogger($logger);
+        parent::setLogger($logger);
+
+    }
+
+
+    public function updateProfiles($taskId = null)
+    {
+
+
+        $taskId = $taskId ? $taskId : str_pad(getmypid(), 6, "0");
+
+        $this->log("Task ID: " . $taskId);
+
+        $conn = $this->getEntityManager()->getConnection();
+        $conn->getConfiguration()->setSQLLogger(null);
+        
+        $totalStmt = $conn->prepare("select count(id) from twitter_user where profile_updated_at is null and status = 200");
+                
+        $lockStmt = $conn->prepare("update twitter_user set status = ? where profile_updated_at is null and status = 200  limit 1000");
+
+        $fetchStmt = $conn->prepare("select id from twitter_user where status = ?");
+        $done = 0;
+
+        $lastTotalUpdate = null;
+
+
+        declare(ticks=1);
+        pcntl_signal(SIGINT,  function() use ($conn, $taskId) {
+
+            $stmt = $conn->prepare("update twitter_user set status = 200 where status = ?");
+            $stmt->execute([$taskId]);
+            $this->log("Command shut down, releasing statues for $taskId");
+            exit();
+
+        });
+
+        do {
+
+            try {
+                gc_collect_cycles();
+
+                if(!$lastTotalUpdate || $lastTotalUpdate + 2*60 < time()) {
+
+                    $totalStmt->execute();
+                    $total = $totalStmt->fetch(\Doctrine\ORM\Query::HYDRATE_SCALAR);
+                    $total = $total[0];
+                    $lastTotalUpdate = time();
+
+                }
+
+                $lockStmt->execute([$taskId]);
+                $fetchStmt->execute([$taskId]);
+
+                $ids = [];
+                while($row = $fetchStmt->fetch(\Doctrine\ORM\Query::HYDRATE_SCALAR)) {
+
+                    $ids[] = $row[0];
+
+                }
+
+                
+                if($ids) {
+                
+                    $this->log($taskId . " " . number_format($done) . "/" . number_format($total) . " processing. ");    
+                    $this->updateProfilesFromUserIds($ids);
+                    $done += count($ids);
+                    $this->log("done");
+
+                }
+                else {
+
+                    sleep(5);
+
+                }
+
+            }
+            catch(\Doctrine\DBAL\Exception\DeadlockException $e) {
+
+                $this->log("Deadlock found, trying again : " . $e->getMessage());
+                sleep(2);
+
+            }
+            catch(\Exception $e) {
+
+                $this->log(get_class($e) . " " . $e->getCode() . " : " . $e->getMessage(), "error");
+                throw $e;
+
+            }
+
+
+        }
+        while(true);
+
+        pcntl_signal(SIGINT,  SIG_DFL);
+
+        return $done;
+
+    }
+
+    public function updateProfilesFromUserIds($ids)
+    {
+
+        $chunks = array_chunk($ids, 100);
+
+        foreach($chunks as $chunk) {
+
+
+            $lookup = $this->api->get("users/lookup", ["user_id" => implode(",", $chunk)]);
+            $profileUpdatedAt = $this->api->getApiDatetime();
+
+            if(!is_array($lookup)) {
+
+                throw new \Exception(json_encode($lookup));
+
+            }
+
+            $conn = $this->getEntityManager()->getConnection();
+
+
+            $stmt = $conn->prepare("
+                update 
+                    twitter_user 
+                set 
+                    name = ?, screen_name = ?, description = ?, 
+                    lang = ?, location = ?, verified = ?, protected = ?, 
+                    followers_count = ?, friends_count = ?, listed_count = ?,
+                    updated_at = ?, profile_updated_at = ?, status = 200
+                where 
+                    id = ?");
+
+            $notFoundStmt = $conn->prepare("
+                update 
+                    twitter_user
+                set 
+                    status = 404,
+                    profile_updated_at = ?
+                where 
+                    id = ?
+
+            ");
+
+            $now = date("Y-m-d H:i:s");
+            $founds = [];
+
+            foreach($lookup as $profile) {
+
+                $params = [];
+                $params[] = $profile->name;
+                $params[] = $profile->screen_name;
+                $params[] = $profile->description;
+                $params[] = $profile->lang;
+                $params[] = $profile->location;
+                $params[] = $profile->verified ? 1: 0;
+                $params[] = $profile->protected ? 1 : 0;
+                $params[] = $profile->followers_count;
+                $params[] = $profile->friends_count;
+                $params[] = $profile->listed_count;
+                $params[] = $now;
+                $params[] = $profileUpdatedAt->format("Y-m-d H:i:s");
+                $params[] = $profile->id_str;
+
+                $stmt->execute($params);
+
+                $founds[] = $profile->id_str;
+
+            }
+
+            $notFounds = array_diff($chunk, $founds);
+
+            $this->log(count($founds) . " found, " . count($notFounds) . " not found. "  . round(memory_get_usage(true) / 1024/1024) . "Mb used.");
+
+            foreach($notFounds as $id) {
+
+                $notFoundStmt->execute([$profileUpdatedAt->format("Y-m-d H:i:s"), $id]);
+
+            }
+
+        }
+
+    }
+
+
+    public function updateTimeline($user, $use_cache = true)
     {
 
         $em = $this->getEntityManager();
         $tweetRep = $em->getRepository(Tweet::class);
 
-        $timeline = $this->api->get("statuses/user_timeline", ["user_id" => $user->getId(), "count" => 200]);
+        $timeline = $this->api->get("statuses/user_timeline", ["user_id" => $user->getId(), "count" => 200], $use_cache);
         $dataDatetime = $this->api->getApiDatetime();
 
         if(!isset($timeline->errors) && !isset($timeline->error)) {
@@ -121,10 +308,13 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
         }
 
-        $this->hydrateJson($user, $profile, $dataDatetime);
+        if(!$user->getProfileUpdatedAt() || $user->getProfileUpdatedAt()->format("U") < $dataDatetime) {
 
-        $this->getEntityManager()->persist($user);
+            $this->hydrateJson($user, $profile, $dataDatetime);
+            $this->getEntityManager()->persist($user);
 
+        }
+        
         return $user;
 
     }
