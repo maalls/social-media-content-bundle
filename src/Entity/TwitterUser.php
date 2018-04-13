@@ -80,6 +80,32 @@ class TwitterUser
      */
     private $listed_count = 0;
 
+
+    /**
+     * @ORM\Column(type="integer", options={"unsigned"=true}, nullable=true)
+     */
+    private $post_period_median;
+
+    /**
+     * @ORM\Column(type="integer", options={"unsigned"=true}, nullable=true)
+     */
+    private $retweet_median;
+
+    /**
+     * @ORM\Column(type="integer", options={"unsigned"=true}, nullable=true)
+     */
+    private $favorite_median;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $retweet_rate;
+
+    /**
+     * @ORM\Column(type="integer", options={"unsigned"=true}, nullable=true)
+     */
+    private $score;
+
      /**
     * @ORM\Column(type="datetime")
     */
@@ -134,7 +160,7 @@ class TwitterUser
     }
 
 
-   
+
 
     /**
      * @return mixed
@@ -372,6 +398,106 @@ class TwitterUser
     public function setListedCount($listed_count)
     {
         $this->listed_count = $listed_count;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPostPeriodMedian()
+    {
+        return $this->post_period_median;
+    }
+
+    /**
+     * @param mixed $post_period_median
+     *
+     * @return self
+     */
+    public function setPostPeriodMedian($post_period_median)
+    {
+        $this->post_period_median = $post_period_median;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRetweetMedian()
+    {
+        return $this->retweet_median;
+    }
+
+    /**
+     * @param mixed $retweet_median
+     *
+     * @return self
+     */
+    public function setRetweetMedian($retweet_median)
+    {
+        $this->retweet_median = $retweet_median;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFavoriteMedian()
+    {
+        return $this->favorite_median;
+    }
+
+    /**
+     * @param mixed $favorite_median
+     *
+     * @return self
+     */
+    public function setFavoriteMedian($favorite_median)
+    {
+        $this->favorite_median = $favorite_median;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRetweetRate()
+    {
+        return $this->retweet_rate;
+    }
+
+    /**
+     * @param mixed $retweet_rate
+     *
+     * @return self
+     */
+    public function setRetweetRate($retweet_rate)
+    {
+        $this->retweet_rate = $retweet_rate;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getScore()
+    {
+        return $this->score;
+    }
+
+    /**
+     * @param mixed $score
+     *
+     * @return self
+     */
+    public function setScore($score)
+    {
+        $this->score = $score;
 
         return $this;
     }

@@ -37,7 +37,6 @@ class TwitterUserFollowerRepositoryTest extends KernelTestCase
             ->getQuery()
             ->getSingleScalarResult();
 
-
         $this->assertTrue($followersCount > 1000);
 
 

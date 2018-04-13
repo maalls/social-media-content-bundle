@@ -35,6 +35,223 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
     }
 
+    public function setApi($api)
+    {
+
+        $this->api = $api;
+
+    }
+
+    public function updateAllTimelines($taskId = null)
+    {
+        $taskId = $taskId ? $taskId : str_pad(getmypid(), 6, "0");
+
+        $conn = $this->getEntityManager()->getConnection();
+        $conn->getConfiguration()->setSQLLogger(null);
+        $totalStmt = $conn->prepare("select count(id) from twitter_user where timeline_updated_at is null and status = 200 and lang = 'ja' and followers_count > 10000 and protected = 0");
+        $lockStmt = $conn->prepare("update twitter_user set status = ? where timeline_updated_at is null and status = 200 and lang = 'ja' and followers_count > 10000 and protected = 0 limit 20");
+        
+        $done = 0;
+        $lastTotalUpdate = null;
+
+        $exitFunction = function() use ($conn, $taskId) {
+
+            $stmt = $conn->prepare("update twitter_user set status = 200 where status = ?");
+            $stmt->execute([$taskId]);
+            $this->log("Command shut down, releasing statues for $taskId");
+            exit();
+
+        };
+
+        declare(ticks=1);
+        pcntl_signal(SIGINT,  $exitFunction);
+
+        do {
+
+            try {
+                gc_collect_cycles();
+
+                if(!$lastTotalUpdate || $lastTotalUpdate + 2*60 < time()) {
+
+                    $totalStmt->execute();
+                    $total = $totalStmt->fetch(\Doctrine\ORM\Query::HYDRATE_SCALAR);
+                    $total = $total[0];
+                    $lastTotalUpdate = time();
+
+                }
+
+                $lockStmt->execute([$taskId]);
+                
+                $users = $this->createQueryBuilder("u")
+                    ->where("u.status = :status")
+                    ->setParameter("status", $taskId)
+                    ->getQuery()
+                    ->getResult();
+                
+                if($users) {
+                
+                    $this->log($taskId . " " . number_format($done) . "/" . number_format($total) . " processing " . count($users) . " users in batch.");    
+                    $this->updateTimelines($users);
+                    $done += count($users);
+                    $this->log("done");
+
+                }
+                
+
+            }
+            catch(\Doctrine\DBAL\Exception\DeadlockException $e) {
+
+                $this->log("Deadlock found while updating all timelines, trying again : " . $e->getMessage());
+
+                if (!$this->getEntityManager()->isOpen()) {
+                    
+                    $this->setEntityManager($this->getEntityManager()->create(
+                        $this->getEntityManager()->getConnection(),
+                        $this->getEntityManager()->getConfiguration()
+                    ));
+                }
+
+                sleep(2);
+
+            }
+            catch(\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+
+                $this->log("Might didn't liked multi-tread, trying again : " . $e->getMessage());
+                sleep(2);
+
+            }
+
+            catch(\Exception $e) {
+
+                $this->log(get_class($e) . " " . $e->getCode() . " : " . $e->getMessage(), "error");
+                throw $e;
+
+            }
+
+
+        }
+        while($users);
+
+        pcntl_signal(SIGINT,  SIG_DFL);
+
+        return $done;
+
+
+    }
+
+    public function updateTimelines($users, $use_cache = true)
+    {
+
+        foreach($users as $user) {
+
+            $this->updateTimeline($user, $use_cache);
+
+        }
+
+    }
+
+    public function updateTimeline($user, $use_cache = true)
+    {
+
+        $this->log("Updating timeline for user ID " . $user->getId() . " " . $user->getScreenName());
+        $em = $this->getEntityManager();
+        $tweetRep = $em->getRepository(Tweet::class);
+
+        $timeline = $this->api->get("statuses/user_timeline", ["user_id" => $user->getId(), "count" => 200], $use_cache);
+        $dataDatetime = $this->api->getApiDatetime();
+
+        if(!isset($timeline->errors) && !isset($timeline->error)) {
+
+                $retweets = [];
+                $favorites = [];
+                $periods = [];
+                $previous = null;
+                $retweetCount = 0;
+
+                foreach($timeline as $l => $t) {
+
+                    $tweet = $tweetRep->generateFromJson($t, $dataDatetime);
+
+                    if($tweet->getInReplyToStatusId()) {
+
+                        // TODO: how to deal with account with lot of reply?
+
+                    }
+                    elseif(preg_match("/^@/", $tweet->getText())) {
+
+
+
+                    }
+                    elseif($tweet->getRetweetStatus()) {
+
+                        $retweetCount++;
+
+                    }
+                    else {
+                    
+                        $retweets[] = $tweet->getRetweetCount();
+                        $favorites[] = $tweet->getFavoriteCount();
+
+                        
+
+                    }
+
+                    if($previous) {
+
+                        $periods[] =  $previous->getPostedAt()->format("U") - $tweet->getPostedAt()->format("U");
+
+                    }
+
+                    $previous = $tweet;
+
+                }
+
+                $retweetRate = $timeline ? $retweetCount / count($timeline) : 0;
+                sort($retweets);
+                $retweetMedian =  $retweets ? $retweets[floor(count($retweets) / 2)] : 0;
+                sort($favorites);
+                $favoriteMedian = $favorites ? $favorites[floor(count($favorites) / 2)] : 0; 
+                sort($periods);
+                $periodMedian =  $periods ? $periods[floor(count($periods) / 2)] : 0;
+
+                $user->setRetweetMedian($retweetMedian);
+                $user->setFavoriteMedian($favoriteMedian);
+                $user->setPostPeriodMedian($periodMedian);
+                $user->setRetweetRate($retweetRate);
+                $user->setTimelineUpdatedAt($dataDatetime);
+                $user->setStatus(200);
+                $em->persist($user);
+
+                $em->flush();
+
+        }
+        else {
+
+            if(isset($timeline->errors)) {
+
+                throw new \Exception($timeline->errors[0]->message, $timeline->errors[0]->code);
+
+            }
+            elseif(isset($timeline->error) && $timeline->error == "Not authorized.") {
+
+                $this->log("Protected user.");
+                $user->setStatus(200);
+                $user->setProtected(1);
+                $user->setTimelineUpdatedAt($dataDatetime);
+                $em->flush();
+
+            }
+            else {
+
+
+
+                throw new \Exception("Unexpected error : " . json_encode($timeline));
+
+            }
+
+        }
+
+    }
 
     public function updateProfiles($taskId = null)
     {
@@ -109,7 +326,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
             }
             catch(\Doctrine\DBAL\Exception\DeadlockException $e) {
 
-                $this->log("Deadlock found, trying again : " . $e->getMessage());
+                $this->log("Deadlock found while updating profiles, trying again : " . $e->getMessage());
                 sleep(2);
 
             }
@@ -122,7 +339,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
 
         }
-        while(true);
+        while($ids);
 
         pcntl_signal(SIGINT,  SIG_DFL);
 
@@ -213,48 +430,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
     }
 
 
-    public function updateTimeline($user, $use_cache = true)
-    {
-
-        $em = $this->getEntityManager();
-        $tweetRep = $em->getRepository(Tweet::class);
-
-        $timeline = $this->api->get("statuses/user_timeline", ["user_id" => $user->getId(), "count" => 200], $use_cache);
-        $dataDatetime = $this->api->getApiDatetime();
-
-        if(!isset($timeline->errors) && !isset($timeline->error)) {
-
-                $stats = [];
-
-                foreach($timeline as $l => $t) {
-
-                    $tweet = $tweetRep->generateFromJson($t, $dataDatetime);
-                    
-                }
-
-                $user->setTimelineUpdatedAt($dataDatetime);
-                $em->persist($user);
-                $em->flush();
-
-        }
-        else {
-
-            if(isset($timeline->errors)) {
-
-                throw new \Exception($timeline->errors[0]->message, $timeline->errors[0]->code);
-
-            }
-            else {
-
-                throw new \Exception("Unexpected error : " . json_encode($timeline));
-
-            }
-
-        }
-
-
-
-    }
+    
 
     public function generateFromScreenName($screen_name)
     {

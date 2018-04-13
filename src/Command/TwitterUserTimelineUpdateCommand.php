@@ -11,7 +11,7 @@ use Maalls\SocialMediaContentBundle\Lib\Twitter\Search;
 use Maalls\SocialMediaContentBundle\Entity\TwitterUser;
 
 
-class TwitterUserProfileUpdateCommand extends Command
+class TwitterUserTimelineUpdateCommand extends Command
 {
 
     public function __construct(\Doctrine\Common\Persistence\ObjectManager $em)
@@ -25,24 +25,25 @@ class TwitterUserProfileUpdateCommand extends Command
     protected function configure()
     {
         $this
-        ->setName('smc:twitter:user:update')
-        ->setDescription('Update Twitter user profile command.')
+        ->setName('smc:twitter:user:timeline:update')
+        ->setDescription('Collect timeline of most influencial users.')
         ;
 
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln("Updating Twitter user profile.");
+
+        $output->writeln("Updating Twitter user timeline.");
 
         $logger = new LoggerOutputAdapter($output);
         $rep = $this->em->getRepository(TwitterUser::class);
         $rep->setLogger($logger);
         do {
-        
-            $rep->updateProfiles();  
+            
+            $rep->updateAllTimelines();  
             sleep(5);
-
+            
         }
         while(true);
 

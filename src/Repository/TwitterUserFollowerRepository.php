@@ -30,7 +30,7 @@ class TwitterUserFollowerRepository extends LoggableServiceEntityRepository
         } 
         else {
 
-            $cursor = 1440771217574818876;
+            $cursor = null;
 
             do {
 

@@ -136,16 +136,37 @@ class TwitterUserRepositoryTest extends KernelTestCase
         $this->truncateAll();
 
         $user = new TwitterUser();
-        $user->setId(7812392);
-        $user->setScreenName("ultrasupernew");
+        $user->setId(783214);
+        $user->setScreenName("twitter");
         $user->setUpdatedAt(new \Datetime());
         $user->setProfileUpdatedAt(new \Datetime());
 
         $this->em->persist($user);
         $this->em->flush();
 
-        $this->em->getRepository(TwitterUser::class)->updateTimeline($user);
+        $apiMock = $this->createMock(\Maalls\SocialMediaContentBundle\Lib\Twitter\Api::class);
 
+        $json = json_decode(file_get_contents(__dir__ . "/twitter_timeline_sample.json"));
+
+        $apiMock->expects($this->any())
+            ->method('get')
+            ->willReturn($json);
+
+        $apiMock->expects($this->any())
+            ->method('getApiDatetime')
+            ->willReturn(new \Datetime("1885-07-16 02:03:04"));
+
+        $rep = $this->em->getRepository(TwitterUser::class);
+        $rep->setApi($apiMock);
+
+        $result = $rep->updateTimeline($user);
+
+        $this->assertEquals(478, $user->getRetweetMedian());
+        $this->assertEquals(1794, $user->getFavoriteMedian());
+        $this->assertEquals(0.465, $user->getRetweetRate());
+        $this->assertEquals(8493, $user->getPostPeriodMedian());
+        $this->assertEquals("1885-07-16 02:03:04", $user->getTimelineUpdatedAt()->format("Y-m-d H:i:s"));
+        
         $count = $this->em->getRepository(Tweet::class)
             ->createQueryBuilder("t")->select("count(t)")
             ->where("t.user = :user")->setParameter("user", $user)
@@ -153,6 +174,32 @@ class TwitterUserRepositoryTest extends KernelTestCase
             ->getSingleScalarResult();
 
         $this->assertEquals(200, $count);
+
+
+    }
+
+    public function testUpdateAllTimelines()
+    {
+
+        $this->truncateAll();
+        $now = '2018-01-01 12:12:12';
+        $stmt = $this->em->getConnection()->prepare("
+            insert into 
+                twitter_user (status, lang, protected, followers_count, id, screen_name, updated_at) 
+            values 
+                (200, 'ja', 0, 11000, 783214, 'twitter', '$now'), 
+                (200, 'ja', 0, 13000, 7812392, 'ultrasupernew', '$now'),
+                (200, 'ja', 0, 89, 42234234, 'dummy_account', '$now')
+        ");
+
+        $stmt->execute();
+
+
+        $rep = $this->em->getRepository(TwitterUser::class);
+        $done = $rep->updateAllTimelines();
+
+        $this->assertEquals(2, $done);
+
 
 
     }

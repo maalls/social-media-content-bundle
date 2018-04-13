@@ -36,98 +36,89 @@ class TmpCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
-        $cache_dir = $this->api->getCacheLocation();
+        $em = $this->em;
 
-        $dir = new \DirectoryIterator($cache_dir);
+        $query = $em->getRepository(TwitterUser::class)->createQueryBuilder("u")
+            ->where("u.status = 200 and u.lang = 'ja' and u.followers_count > 10000 and u.retweet_median is null and u.timeline_updated_at is not null")
+            ->setMaxResults(200)
+            ->getQuery();
+
+        do {
         
-        $skip = true;
-        foreach ($dir as $fileinfo) {
-            if (!$fileinfo->isDot()) {
-                echo $fileinfo->getFilename() . PHP_EOL;
-                $filename = $cache_dir . "/" . $fileinfo->getFilename();
+            $users = $query->getResult();
+            $output->writeln("Processing " . count($users) . " users.");
+            
+            foreach($users as $user) {
 
-                $dataDatime = new \Datetime(date("Y-m-d H:i:s", filemtime($filename)));
+                $output->writeln($user->getScreenName());
+
+                $retweets = [];
+                $favorites = [];
+                $periods = [];
+                $previous = null;
+                $retweetCount = 0;
+
+                $tweets = $em->getRepository(Tweet::class)->createQueryBuilder("t")->where("t.user = :user")->setParameter("user", $user)->orderBy("t.id", "DESC")->getQuery()->getArrayResult();
+
+
+                foreach($tweets as $l => $tweet) {
+
+                    if($tweet["in_reply_to_status_id"]) {
+
+                        // TODO: how to deal with account with lot of reply?
+
+                    }
+                    elseif(preg_match("/^@/", $tweet["text"])) {
+
+
+
+                    }
+                    elseif(isset($tweet["retweet_status_id"]) && $tweet["retweet_status_id"]) {
+
+                        $retweetCount++;
+
+                    }
+                    else {
+                    
+                        $retweets[] = $tweet["retweet_count"];
+                        $favorites[] = $tweet["favorite_count"];
+
+                    }
+
+                    if($previous) {
+
+                        $periods[] =  $previous["posted_at"]->format("U") - $tweet["posted_at"]->format("U");
+
+                    }
+
+                    $previous = $tweet;
+
+                }
+
+                $retweetRate = count($tweets) ? $retweetCount / count($tweets) : 0;
+                sort($retweets);
+                $retweetMedian =  $retweets ? $retweets[floor(count($retweets) / 2)] : 0;
+                sort($favorites);
+                $favoriteMedian = $favorites ? $favorites[floor(count($favorites) / 2)] : 0; 
+                sort($periods);
+                $periodMedian =  $periods ? $periods[floor(count($periods) / 2)] : 0;
+
                 
-                if(true || $fileinfo->getFilename() == "8b595cdbcff7022bdf11d3a303e104355bc87d09.json") {
 
-                    $skip = false;
-
-                }
-
-                if($skip) continue;
-
-                $json = json_decode(file_get_contents($filename));
-
-                // if array can be list of tweet or list of profile.
-
-                if(is_array($json)) {
-
-
-                    if(!isset($json[0])) {
-
-                        // empty array
-                        unlink($filename);
-                        continue;
-
-                    }
-
-                    $first = $json[0];
-                    if(isset($first->screen_name)) {
-
-                        // user lookup.
-
-                        foreach($json as $user) {
-
-                            $this->collectEntities($user, $dataDatime);
-                            
-                        }
-                        unlink($filename);
-                        continue;
-
-                    }
-                    elseif(isset($first->text)) {
-
-                        // tweet timeline list. Only for existing user.
-                        unlink($filename);
-                        continue;
-
-                    }
-
-
-
-                }
-                elseif(isset($json->screen_name)) {
-
-                    // user
-                    $this->collectEntities($json, $dataDatime);
-                    unlink($filename);
-                    continue;
-
-                }
-                elseif(isset($json->ids)) {
-
-                    unlink($filename);
-                    // list of ids, nothing to do
-                    continue;
-
-                }
-                elseif(isset($json->error) || isset($json->errors)) {
-
-                    // error response
-                    unlink($filename);
-                    continue;
-
-                }
-
-
-                var_dump($json);
-                var_dump("To handle.");
-                exit;
-
-
+                $user->setRetweetMedian($retweetMedian);
+                $user->setFavoriteMedian($favoriteMedian);
+                $user->setPostPeriodMedian($periodMedian);
+                $user->setRetweetRate($retweetRate);
+                $user->setStatus(200);
+                $em->persist($user);
+                $em->flush();
 
             }
+            
+            $em->clear();
         }
+        while(count($users));
+
 
     }
 
