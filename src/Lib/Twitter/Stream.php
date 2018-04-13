@@ -3,6 +3,7 @@
 namespace Maalls\SocialMediaContentBundle\Lib\Twitter;
 
 use Maalls\SocialMediaContentBundle\Entity\Tweet;
+use Maalls\SocialMediaContentBundle\Entity\TwitterStream;
 
 class Stream extends \OauthPhirehose
 {
@@ -12,6 +13,81 @@ class Stream extends \OauthPhirehose
     protected $firebase;
 
     protected $counter;
+
+    
+    public function consume($reconnect = true)
+    {
+
+        $this->checkFilterPredicates();
+
+        return parent::consume($reconnect);
+
+    }
+
+
+    protected function checkFilterPredicates()
+      {
+        
+        $track = $this->em->getRepository(TwitterStream::class)->getTrack();
+
+        $current_track = $this->getTrack();
+
+        if($current_track != $track || !$this->getTrack()) {
+
+            if($track) {
+
+                $this->log("Track set to " . implode(",", $track));
+                $this->setTrack($track);
+
+            }
+            else {
+
+                $this->log("Nothing to track, track something impossible");
+                $this->setTrack(["hhfjh7788sdfhhY8899923"]);
+
+            }
+
+        }
+
+      }
+    /**
+    * Enqueue each status
+    *
+    * @param string $status
+    */
+    public function enqueueStatus($status)
+    {
+    
+        try {
+        
+            $status = json_decode($status);
+            $this->em->clear();
+            $tweet = $this->em->getRepository(Tweet::class)->generateFromJson($status, new \Datetime());
+            $this->em->flush();
+            $this->log("status: " . $tweet->getId());
+
+            if($this->firebase) {
+
+                $count = $this->em->getRepository(Tweet::class)
+                    ->countAll();
+                $this->log("$count tweets");
+                $rsp = $this->firebase->set("/bazooka/twitter/", ["count" => $count, "status" => $status]);
+                $rsp = $this->firebase->set("/bazooka/total/", ["count" => $this->counter->getCount()]);
+
+                
+
+            }
+
+        }
+        catch(\Exception $e) {
+
+            //echo $status . PHP_EOL;
+
+            throw $e;
+
+        }
+
+    }
 
     public function setEntityManager($em)
     {
@@ -39,43 +115,6 @@ class Stream extends \OauthPhirehose
     {
 
     $this->log = $log;
-
-    }
-    /**
-    * Enqueue each status
-    *
-    * @param string $status
-    */
-    public function enqueueStatus($status)
-    {
-    
-        try {
-        
-            $status = json_decode($status);
-            $tweet = $this->em->getRepository(Tweet::class)->generateFromJson($status, new \Datetime());
-            $this->em->flush();
-            $this->log("status: " . $tweet->getId());
-
-            if($this->firebase) {
-
-                $count = $this->em->getRepository(Tweet::class)
-                    ->countAll();
-                $this->log("$count tweets");
-                $rsp = $this->firebase->set("/bazooka/twitter/", ["count" => $count, "status" => $status]);
-                $rsp = $this->firebase->set("/bazooka/total/", ["count" => $this->counter->getCount()]);
-
-                
-
-            }
-
-        }
-        catch(\Exception $e) {
-
-            //echo $status . PHP_EOL;
-
-            throw $e;
-
-        }
 
     }
 

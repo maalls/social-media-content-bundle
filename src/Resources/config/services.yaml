@@ -36,11 +36,6 @@ services:
           $callback: '%env(INSTAGRAM_API_CALLBACK)%'
           $accessToken: '%env(INSTAGRAM_ACCESS_TOKEN)%'
 
-
-    Maalls\SocialMediaContentBundle\Lib\Twitter\StreamFactory:
-      arguments:
-        $track: '%env(TWITTER_STREAM_TRACK)%'
-
     Maalls\SocialMediaContentBundle\Lib\Twitter\Api:
       arguments:
         $twitter_credentials_file: '%env(TWITTER_CREDENTIALS_FILE)%'

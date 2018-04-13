@@ -8,8 +8,7 @@ class StreamFactory {
         \Doctrine\Common\Persistence\ObjectManager $em, 
         Credential $credential, 
         \Maalls\SocialMediaContentBundle\Lib\Firebase\Factory $firebaseFactory, 
-        \Maalls\SocialMediaContentBundle\Lib\Counter $counter,
-        $track)
+        \Maalls\SocialMediaContentBundle\Lib\Counter $counter)
     {
 
         $this->credential = $credential;
@@ -20,29 +19,18 @@ class StreamFactory {
 
         $this->counter = $counter;
 
-        $this->track = explode(",", $track);
-
     }
 
 
     public function createStream()
     {
 
-        if(!$this->track) {
-
-            throw new \Exception("Nothing to track.");
-
-        }
-
         $stream = new Stream($this->credential->accessToken, $this->credential->accessTokenSecret, \Phirehose::METHOD_FILTER);
         $stream->setEntityManager($this->em);
         $stream->setCounter($this->counter);
         $stream->consumerKey = $this->credential->consumerKey;
         $stream->consumerSecret = $this->credential->consumerSecret;
-
         $stream->setFirebase($this->firebaseFactory->create());
-
-        $stream->setTrack($this->track);
 
         return $stream;
 
