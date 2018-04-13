@@ -28,7 +28,6 @@ class StreamFactory {
     public function createStream()
     {
 
-        var_dump($this->track);
         if(!$this->track) {
 
             throw new \Exception("Nothing to track.");
