@@ -28,6 +28,7 @@ class Stream extends \OauthPhirehose
     protected function checkFilterPredicates()
       {
         
+        $this->em->clear(TwitterStream::class);
         $track = $this->em->getRepository(TwitterStream::class)->getTrack();
 
         $current_track = $this->getTrack();

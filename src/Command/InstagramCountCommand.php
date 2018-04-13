@@ -76,6 +76,7 @@ class InstagramCountCommand extends Command
                     }
 
                     sleep(10);
+                    $this->em->clear(InstagramCount::class);
 
                 }
             }

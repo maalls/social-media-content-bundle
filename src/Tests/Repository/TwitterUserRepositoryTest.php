@@ -164,7 +164,7 @@ class TwitterUserRepositoryTest extends KernelTestCase
         $this->assertEquals(478, $user->getRetweetMedian());
         $this->assertEquals(1794, $user->getFavoriteMedian());
         $this->assertEquals(0.465, $user->getRetweetRate());
-        $this->assertEquals(8493, $user->getPostPeriodMedian());
+        $this->assertEquals(8193, $user->getPostPeriodMedian());
         $this->assertEquals("1885-07-16 02:03:04", $user->getTimelineUpdatedAt()->format("Y-m-d H:i:s"));
         
         $count = $this->em->getRepository(Tweet::class)

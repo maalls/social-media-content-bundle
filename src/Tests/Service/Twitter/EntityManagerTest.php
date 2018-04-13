@@ -9,7 +9,7 @@ class EntityManagerTest extends \Maalls\SocialMediaContentBundle\Tests\KernelTes
     public function testUpdateTimeline()
     {
 
-        $this->assertEqual(true, true);
+        $this->assertEquals(true, true);
 
     }
 

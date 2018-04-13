@@ -9,7 +9,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Maalls\SocialMediaContentBundle\Entity\TwitterStream;
 
 
-class TwitterUserFollowerRepositoryTest extends KernelTestCase
+class TwitterStreamRepositoryTest extends KernelTestCase
 {
 
     public function testGetTrack() 
