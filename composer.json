@@ -26,7 +26,7 @@
         "abraham/twitteroauth": "dev-fixes",
         "cosenary/instagram": "^2.3",
         "ktamas77/firebase-php": "^2.2",
-        "maalls/phirehose": "@dev"
+        "maalls/phirehose": "dev-fix"
 
     },
     
