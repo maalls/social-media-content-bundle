@@ -4,12 +4,12 @@
     "type" : "symfony-bundle",
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/maalls/phirehose"
+            "type": "git",
+            "url": "https://github.com/maalls/phirehose.git"
         },
         {
-            "type": "vcs",
-            "url": "https://github.com/maalls/twitteroauth"
+            "type": "git",
+            "url": "https://github.com/maalls/twitteroauth.git"
         }
 
     ],

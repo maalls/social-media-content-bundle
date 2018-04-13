@@ -28,6 +28,13 @@ class StreamFactory {
     public function createStream()
     {
 
+        var_dump($this->track);
+        if(!$this->track) {
+
+            throw new \Exception("Nothing to track.");
+
+        }
+
         $stream = new Stream($this->credential->accessToken, $this->credential->accessTokenSecret, \Phirehose::METHOD_FILTER);
         $stream->setEntityManager($this->em);
         $stream->setCounter($this->counter);

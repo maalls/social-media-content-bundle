@@ -10,19 +10,26 @@ class Api extends \Maalls\SocialMediaContentBundle\Lib\Loggable {
     private $cacheLocation = '';
     private $apiDatetime = null;
     
-    public function __construct($twitter_credentials_file, $twitter_api_cache_folder = '') {
+    public function __construct($twitter_credentials_file = '', $twitter_api_cache_folder = '') {
 
-        $credentialArray = json_decode(file_get_contents($twitter_credentials_file));
+        if($twitter_credentials_file) {
         
-        $this->credentials = [];
+            $credentialArray = json_decode(file_get_contents($twitter_credentials_file));
+            
+            $this->credentials = [];
 
-        foreach($credentialArray as $array) {
+            foreach($credentialArray as $array) {
 
-            $this->credentials[] = new Credential(...$array);
+                $this->credentials[] = new Credential(...$array);
 
+            }
         }
 
-        $this->setCacheLocation($twitter_api_cache_folder);
+        if($twitter_api_cache_folder) {
+        
+            $this->setCacheLocation($twitter_api_cache_folder);
+
+        }
 
     }
 
@@ -172,6 +179,12 @@ class Api extends \Maalls\SocialMediaContentBundle\Lib\Loggable {
 
     public function create()
     {
+
+        if(!$this->credentials) {
+
+            throw new \Exception("Credentials required.");
+
+        }
 
         $credential = $this->credentials[$this->nextIndex];
 
