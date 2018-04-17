@@ -1,0 +1,36 @@
+{% extends '@SocialMediaContent/base.html.twig' %}
+
+{% block breadcrumb %}
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-lg-10">
+            <h2></h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="{{ path('smc_home') }}">Home</a>
+                </li>
+                <li>
+                    <a>Twitter</a>
+                </li>
+                <li>
+                    <a href="{{ path('twitter_users') }}">Users</a>
+                </li>
+                <li>
+                    <a href="{{ path('twitter_users_show', {id: user.id }) }}">{{ user.name }} @{{ user.screenName }}</a>
+                </li>
+                <li>
+                    Followers
+                </li>
+                
+            </ol>
+        </div>
+        <div class="col-lg-2">
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {{ include('twitter_user/list.html.twig', {'pagination': pagination }) }}
+
+{% endblock %}

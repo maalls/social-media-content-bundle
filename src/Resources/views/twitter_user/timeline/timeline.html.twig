@@ -1,0 +1,80 @@
+<style>
+    .feed-element.reply, .feed-element.retweet, .feed-element.quote {
+
+        display:none;
+
+    }
+</style>
+<div class="ibox float-e-margins">
+    <div class="ibox-title">
+        <h5>Timeline </h5>
+        <div class="ibox-tools">
+            {% set sorts =  {'id': 'Date', 'retweet_count': 'Retweets'} %}
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                sort by {{ sorts[app.request.query.get("sort", "id")] }} <i class="fa fa-sort-down"></i> 
+            </a>
+            <ul class="dropdown-menu dropdown-user">
+                {% for key, value in sorts %}
+                   <li><a href="{{ path('twitter_users_show', {id: user.id }) ~ '?sort=' ~ key }}">{{ value }}</a></li>
+                {% endfor %}
+            </ul>
+            
+        </div>
+        
+        
+    </div>
+    <div class="ibox-content">
+
+        <div class="row text-center" style="margin-bottom: 10px;">
+            {% if user.timelineUpdatedAt %}
+                 <small>timeline updated  {{ user.timelineUpdatedAt | ago }}</small>
+            {% else %}
+                <small>untracked timeline</small>
+            {% endif %}
+            <small><a href="{{ path('twitter_users_timeline_update', {id: user.id}) }}"><i class="fa fa-refresh"></i> Refresh</a></small>
+        </div>
+        <div>
+            <div class="feed-activity-list">
+
+                {% for item in timeline %}
+
+                    {% set tweet = item.retweetStatus ? item.retweetStatus : item %}
+
+                    <div class="feed-element {{ tweet.inReplyToStatusId or tweet.isReply ? 'reply' : '' }} {{ item.retweetStatus ? 'retweet' : '' }} {{ item.isQuoteStatus ? 'quote' : '' }}">
+                        <a href="#" class="pull-left">
+                            <img alt="image" class="img-circle" src="https://twitter.com/@{{ tweet.user.screenName }}/profile_image?size=normal">
+                        </a>
+                        <div class="media-body ">
+
+                            <a target="_blank" href="https://twitter.com/{{ tweet.user.screenName }}/status/{{ tweet.id }}"><small class="pull-right text-right">{{ tweet.postedAt | ago }}<br/>{{ tweet.postedAt.format('Y-m-d H:i:s') }}</small></a>
+
+                            {% if tweet.user != user %}
+
+                                <i class="fa fa-retweet"></i> {{ user.name }} retweeted<br/>
+
+                            {% endif %}
+                            <a href="{{ path('twitter_users_show', {id: tweet.user.id}) }}"><strong>{{ tweet.user.name }}</strong></a>
+
+                            {% if tweet.inReplyToStatusId %}
+                                in reply to {{ tweet.inReplyToStatusId }}
+                            {% endif %}
+                            <br>
+                            
+                            <div class="well">
+                                {{ tweet.html | raw }}
+                            </div>
+                            <div class="">
+                                <i class="fa fa-retweet"></i> {{ tweet.retweetCount | number_format }} 
+                                <i class="fa fa-heart"></i> {{ tweet.favoriteCount | number_format }} 
+                            </div>
+                        </div>
+                    </div>
+
+                {% endfor %}
+
+                <!--button class="btn btn-primary btn-block m"><i class="fa fa-arrow-down"></i> Show More</button-->
+
+        </div>
+
+    </div>
+</div>

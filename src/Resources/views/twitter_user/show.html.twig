@@ -1,0 +1,181 @@
+{% extends '@SocialMediaContent/base.html.twig' %}
+{% block meta_title %}
+    {{ user.name }} - Soome
+{% endblock %}
+{% block stylesheets %}
+
+    <link rel="stylesheet" href="{{ asset('bundles/inspinia/chartist/chartist.min.css') }}?v=1.4">
+
+    <style>
+
+        .ct-series-a .ct-line {
+              /* Set the colour of this series line */
+              stroke: red;
+              /* Control the thikness of your lines */
+              stroke-width: 2px;
+              stroke-linecap: square;
+              
+            }
+    </style>
+{% endblock %}
+{% block breadcrumb %}
+    {{ include('@SocialMediaContent/twitter_user/breadcrumb.html.twig', {user: user}) }}
+{% endblock %}
+{% block content %}
+
+            <div class="row">
+                
+                <div class="col-md-6">
+                    
+
+                    <div class="ibox">
+                        <div class="ibox-content">
+
+                            {{ include('@SocialMediaContent/twitter_user/profile.html.twig', {user: user, stats: stats}) }}
+
+                            <div class="row">
+                                <hr />
+                                {% if user.timelineUpdatedAt %}
+                                    <div class="col-lg-12">
+
+                                        <h4>Retweet trend</h4>
+                                        
+                                        <div id="retweet_chart" style="width: 100%; height: 500px"></div>
+
+                                    </div>
+
+                                    <div class="col-lg-12">
+
+                                        
+                                        <h4>Retweeted by</h4>
+
+                                        {% if not retweeters  %}
+                                        <p>No retweeter found in the database.</p>
+                                        {% endif %}
+                                        <table class="table">
+                                            {% for user in retweeters %}
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ path('twitter_users_show', {id: user.id }) }}">
+                                                            <img src="https://twitter.com/@{{ user.screenName }}/profile_image?size=mini"  /> 
+                                                            {{ user.name }}
+                                                            @{{ user.screenName }} 
+                                                        </a>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        {{ user.followersCount | number_format }}
+                                                    </td>
+
+                                                </tr>
+                                            {% endfor %}
+                                        </table>
+                                        
+                                    </div>
+                                {% else  %}
+
+                                    <div class="col-lg-12">   
+                                         <p>Untracked user. <a href="{{ path('twitter_users_timeline_update', {id: user.id}) }}">track once</a></p>
+                                    </div>
+                                {% endif %}
+
+                            </div>
+
+
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+                <div class="col-lg-6">
+
+                    {{ include("@SocialMediaContent/twitter_user/timeline/timeline.html.twig", {user: user, timeline: timeline})}}
+
+                </div>
+            </div>
+
+{% endblock %}
+
+
+{% block javascripts %}
+
+    {% if user.timelineUpdatedAt %}
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+        <script type="text/javascript">
+          google.charts.load('current', {'packages':['corechart']});
+          google.charts.setOnLoadCallback(drawChart);
+
+          
+          function drawChart() {
+            var array = [
+            ['day', 'RT'],
+
+            {% for stats in stats.trends.retweets %}
+                [{{ loop.index }}, {{ stats }}] {% if not loop.last %},{% endif %}
+            {% endfor %}
+
+          ];
+            var data = google.visualization.arrayToDataTable(array);
+
+            var options = {
+                title: '',
+                curveType: 'function',
+                legend: { position: 'none' },
+                vAxis: { 
+                    viewWindow:{
+                        
+                        min:0
+                    }
+                },
+                chartArea: {'width': '80%', 'height': '80%'}
+
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('retweet_chart'));
+
+            function selectHandler() {
+
+                console.log("handler", chart.getSelection());
+
+                var selection = chart.getSelection();
+
+                if(selection.length) {
+
+                    var item = selection[0];
+                    if (item.row != null && item.column != null) {
+
+                        console.log("selection", item.row, item.column);
+
+                    } 
+
+                }
+
+            }
+
+            google.visualization.events.addListener(chart, 'select', selectHandler);
+
+            chart.draw(data, options);
+
+            $(window).resize(function() {
+
+                if(this.resizeTO) clearTimeout(this.resizeTO);
+                this.resizeTO = setTimeout(function() {
+                    $(this).trigger('resizeEnd');
+                }, 500);
+            });
+
+            //redraw graph when window resize is completed  
+            $(window).on('resizeEnd', function() {
+                chart.draw(data, options);
+            });
+
+          }
+
+
+        </script>
+    {% endif %}
+
+
+{% endblock %}

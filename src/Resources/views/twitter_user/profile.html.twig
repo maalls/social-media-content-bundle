@@ -1,0 +1,72 @@
+<div class="row">
+
+    <div class="col-lg-12">
+
+        <div class="profile-image">
+            <img src="https://twitter.com/@{{ user.screenName }}/profile_image?size=bigger" class="img-circle circle-border m-b-md" alt="profile">
+        </div>
+        <div class="profile-info">
+            <div class="">
+                <div>
+                    <h2 class="no-margins">
+                        {{ user.name }} 
+                        {% if user.verified %}<i style="color:#1dcaff" class="fa fa-check-circle"></i>{% endif %}
+                        {% if user.protected %}<i  class="fa fa-lock"></i>{% endif %}
+
+                        <a class="pull-right" target="_blank" href="https://twitter.com/{{ user.screenName }}"><i class="fa fa-external-link"></i></a>
+
+                    </h2>
+                    <h4>@{{ user.screenName }}</h4>
+                    <p>
+                        {{ user.description }}
+                    </p>
+
+                    <p>
+                        <strong>Location:</strong> {{ user.location }}<br/>
+                        <strong>Lang:</strong> {{ user.lang }}<br/>
+                        {% if user.url %}
+                            <strong>Website:</strong> <a href="{{ user.url }}" target="_blank">{{ user.url }}</a><br/>
+                        {% endif %}
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<div class="row m-t-lg">
+    
+    {% for stat in stats.stats %}
+
+        <div class="col-md-4">
+        
+            <h5>
+            
+            {% if stat.link %}
+                <a href="{{ stat.link }}">
+            {% endif %}
+               <strong> {{ stat.value | number_format }}</strong> {{ stat.name }}
+            {% if stat.link %}
+                </a>
+            {% endif %}
+
+            </h5>
+        </div>
+
+    {% endfor %}
+</div>
+
+<div class="row">
+
+    <div class="col-sm-12">
+        <p>
+            <small class="pull-right">profile updated {{ user.profileUpdatedAt | ago }}</small>
+        </p>
+    </div>
+
+</div>

@@ -1,0 +1,115 @@
+<div class="ibox">
+    <div class="ibox-title">
+        <h5>{{ pagination.getTotalItemCount | number_format }} Twitter accounts</h5>
+        <!--div class="ibox-tools">
+            <a href="" class="btn btn-primary btn-xs">Create new project</a>
+        </div-->
+    </div>
+    <div class="ibox-content">
+        
+
+        <div class="project-list">
+
+            <div class="navigation">
+                {{ knp_pagination_render(pagination) }}
+            </div>
+
+            <table class="table table-hover">
+                <tbody>
+
+
+                    {% for user in pagination %}
+
+                        {% if loop.index == 1 or loop.index is divisible by(50) %}
+                            
+                            <tr>
+
+                                <th>Rank</th>
+                                <th></th>
+                                <th>Name</th>
+                                {% for h in [
+                                    {label: 'Followers', field: 'followers_count'}, 
+                                    {label: 'Following', field: 'friends_count'}, 
+                                    {label: 'Listed', field: 'listed_count'},
+                                    {label: 'RT/post', field: 'score'},
+                                    {label: 'Fav/post', field: 'favorite_median'},
+
+                                    ] 
+                                %}
+                                    <th class="text-right"> 
+
+                                        {{ knp_pagination_sortable(pagination, h.label, 'u.' ~ h.field) }}
+                                        {% if pagination.isSorted('u.' ~ h.field) %} 
+
+                                            {% if pagination.direction == 'asc' %}
+                                                <i class="fa fa-sort-up" />
+                                            {% else %}
+                                                <i class="fa fa-sort-down" />
+                                            {% endif %}
+
+
+                                        {% endif %}
+
+                                    </th>
+                                {% endfor %}
+                                <th  class="text-right">Twitter page</th>
+                            </tr>
+                        
+                        {% endif %}
+
+                        <tr>
+                            <td>
+                                <a href="{{ path('twitter_users_show', {id: user.id}) }}">{{ (loop.index + ((pagination.page ?  pagination.page - 1 : 0) * 100)) | number_format }}</a>
+                            </td>
+                            <td>
+                                {% if user.screenName %}
+                                    <img src="https://twitter.com/@{{ user.screenName }}/profile_image?size=normal" width="35" height="35">
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.name %}
+                                    <a href="{{ path('twitter_users_show', {id: user.id}) }}">{{ user.name }}</a>
+                                    {% if user.verified %}<i style="color:#1dcaff" class="fa fa-check-circle"></i>{% endif %}
+                                    {% if user.protected %}<i  class="fa fa-lock"></i>{% endif %}
+                                    <br/>@{{ user.screenName }}
+                                {% else %}
+                                    User {{ user.id }} 
+                                    <br/><small>Information not collected yet, please wait.</small>
+                                {% endif %}
+                                
+                                
+                            </td>
+                           
+                            <td class="text-right">
+                                {{ user.protected and not user.followersCount ? 'NA' : (user.followersCount | number_format) }}
+                            </td>
+                            <td class="text-right">
+                                {{ user.friendsCount | number_format }}
+                            </td>
+                            <td class="text-right">
+                                {{ user.protected and not user.listedCount ? 'NA' : (user.listedCount | number_format) }}
+                            </td>
+                            <td class="text-right">
+                                {{ user.protected and not user.retweetMedian ? 'NA' : (user.retweetMedian | number_format) }}
+                            </td>
+                            
+                            <td class="text-right">
+                                {{ user.protected and not user.favoriteMedian ? 'NA' : (user.favoriteMedian | number_format) }}
+                            </td>
+                            
+                            <td class="text-right">
+                                <a href="https://twitter.com/{{user.screenName }}" target="_blank"><i class="fa fa-external-link"></i></a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+            <div class="navigation">
+                {{ knp_pagination_render(pagination) }}
+            </div>
+        </div>
+
+    </div>
+</div>
