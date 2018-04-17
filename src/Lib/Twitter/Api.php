@@ -56,6 +56,7 @@ class Api extends \Maalls\SocialMediaContentBundle\Lib\Loggable {
 
                     file_put_contents($cache_file, json_encode($rsp));
                 }
+                
 
             }
 

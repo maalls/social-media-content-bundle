@@ -46,7 +46,8 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
     {
         $taskId = $taskId ? $taskId : str_pad(getmypid(), 6, "0");
 
-        $conn = $this->getEntityManager()->getConnection();
+        $em = $this->getEntityManager();
+        $conn = $em->getConnection();
         $conn->getConfiguration()->setSQLLogger(null);
         $totalStmt = $conn->prepare("select count(id) from twitter_user where timeline_updated_at is null and status = 200 and lang = 'ja' and followers_count > 10000 and protected = 0");
         $lockStmt = $conn->prepare("update twitter_user set status = ? where timeline_updated_at is null and status = 200 and lang = 'ja' and followers_count > 10000 and protected = 0 limit 20");
@@ -56,9 +57,9 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
         $exitFunction = function() use ($conn, $taskId) {
 
-            $stmt = $conn->prepare("update twitter_user set status = 200 where status = ?");
-            $stmt->execute([$taskId]);
+            
             $this->log("Command shut down, releasing statues for $taskId");
+            $this->unlockUsers($taskId);
             exit();
 
         };
@@ -69,6 +70,9 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
         do {
 
             try {
+                $em->clear(TwitterUser::class);
+                $em->clear(Tweet::class);
+                $em->clear();
                 gc_collect_cycles();
 
                 if(!$lastTotalUpdate || $lastTotalUpdate + 2*60 < time()) {
@@ -103,14 +107,6 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
                 $this->log("Deadlock found while updating all timelines, trying again : " . $e->getMessage());
 
-                if (!$this->getEntityManager()->isOpen()) {
-                    
-                    $this->setEntityManager($this->getEntityManager()->create(
-                        $this->getEntityManager()->getConnection(),
-                        $this->getEntityManager()->getConfiguration()
-                    ));
-                }
-
                 sleep(2);
 
             }
@@ -124,9 +120,13 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
             catch(\Exception $e) {
 
                 $this->log(get_class($e) . " " . $e->getCode() . " : " . $e->getMessage(), "error");
+                $this->unlockUsers($taskId);
                 throw $e;
 
             }
+
+            $this->getEntityManager()->clear(Tweet::class);
+            $this->getEntityManager()->clear(TwitterUser::class);
 
 
         }
@@ -136,6 +136,15 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
         return $done;
 
+
+    }
+
+    public function unlockUsers($taskId)
+    {
+
+        $conn = $this->getEntityManager()->getConnection();
+        $stmt = $conn->prepare("update twitter_user set status = 200 where status = ?");
+        $stmt->execute([$taskId]);
 
     }
 
@@ -157,7 +166,35 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
         $em = $this->getEntityManager();
         $tweetRep = $em->getRepository(Tweet::class);
 
-        $timeline = $this->api->get("statuses/user_timeline", ["user_id" => $user->getId(), "count" => 200], $use_cache);
+        $retry = 5;
+
+        do {
+            $timeline = $this->api->get("statuses/user_timeline", ["user_id" => $user->getId(), "count" => 200], $use_cache);
+            
+            if(isset($timeline->errors)) {
+
+                $error = $timelin->errors[0]; 
+
+                switch($error->code) {
+
+                    case 136:
+                        sleep(5);
+                        $retry--;
+                        break;
+                    default:
+                        $retry = 0;
+
+                }
+
+            }
+            else {
+
+                $retry = 0;
+
+            }
+        }
+        while($retry);
+
         $dataDatetime = $this->api->getApiDatetime();
 
         if(!isset($timeline->errors) && !isset($timeline->error)) {
@@ -218,6 +255,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
                 $user->setFavoriteMedian($favoriteMedian);
                 $user->setPostPeriodMedian($periodMedian);
                 $user->setRetweetRate($retweetRate);
+                $user->setScore($retweetMedian);
                 $user->setTimelineUpdatedAt($dataDatetime);
                 $user->setStatus(200);
                 $em->persist($user);
@@ -476,16 +514,19 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
     public function generateFromJson($profile, $dataDatetime)
     {
 
+        //$this->log("Generating user from json profile.");
         $user = $this->find($profile->id_str);
 
         if(!$user) {
-   
+    
+            //$this->log("New user found.");
             $user = new TwitterUser();
 
         }
 
-        if(!$user->getProfileUpdatedAt() || $user->getProfileUpdatedAt()->format("U") < $dataDatetime) {
+        if(!$user->getProfileUpdatedAt() || $user->getProfileUpdatedAt()->format("U") < $dataDatetime->format("U")) {
 
+            //$this->log("hydrating user information");
             $this->hydrateJson($user, $profile, $dataDatetime);
             $this->getEntityManager()->persist($user);
 

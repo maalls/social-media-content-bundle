@@ -7,9 +7,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Maalls\SocialMediaContentBundle\Lib\LoggerOutputAdapter;
-use Maalls\SocialMediaContentBundle\Lib\Twitter\Search;
 use Maalls\SocialMediaContentBundle\Entity\TwitterUser;
-
+use Maalls\SocialMediaContentBundle\Entity\Tweet;
 
 class TwitterUserTimelineUpdateCommand extends Command
 {
@@ -39,6 +38,8 @@ class TwitterUserTimelineUpdateCommand extends Command
         $logger = new LoggerOutputAdapter($output);
         $rep = $this->em->getRepository(TwitterUser::class);
         $rep->setLogger($logger);
+        $tRep = $this->em->getRepository(Tweet::class);
+        $tRep->setLogger($logger);
         do {
             
             $rep->updateAllTimelines();  

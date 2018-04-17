@@ -6,7 +6,7 @@ use Maalls\SocialMediaContentBundle\Entity\TwitterUserFollower;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Maalls\SocialMediaContentBundle\Lib\Twitter\Api;
 use Maalls\SocialMediaContentBundle\Lib\SqlHelper;
-
+use Maalls\SocialMediaContentBundle\Repository\LoggableServiceEntityRepository;
 class TwitterUserFollowerRepository extends LoggableServiceEntityRepository
 {
 

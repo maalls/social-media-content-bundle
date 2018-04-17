@@ -83,6 +83,13 @@ class Tweet
 
     }
 
+    public function isReply()
+    {
+
+        return $this->text[0] == "@";
+
+    }
+
     /**
      * @return mixed
      */

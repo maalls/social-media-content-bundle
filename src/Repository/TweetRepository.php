@@ -6,14 +6,14 @@ use Maalls\SocialMediaContentBundle\Entity\Tweet;
 use Maalls\SocialMediaContentBundle\Entity\TwitterUser;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
-
+use Maalls\SocialMediaContentBundle\Repository\LoggableServiceEntityRepository;
 /**
  * @method Tweet|null find($id, $lockMode = null, $lockVersion = null)
  * @method Tweet|null findOneBy(array $criteria, array $orderBy = null)
  * @method Tweet[]    findAll()
  * @method Tweet[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TweetRepository extends ServiceEntityRepository
+class TweetRepository extends LoggableServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
@@ -86,8 +86,9 @@ class TweetRepository extends ServiceEntityRepository
 
             }
 
+            //$this->log("Persisting tweet " . $tweet->getId(). " with author " . $tweet->getUser()->getId());
             $this->getEntityManager()->persist($tweet);
-
+            //$this->log("Tweet persisted.");
         }
 
         return $tweet;

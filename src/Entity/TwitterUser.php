@@ -9,7 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Table(indexes={
  *   @ORM\Index(name="screen_name", columns={"screen_name"}),
  *   @ORM\Index(name="lang", columns={"lang", "followers_count"}),
- *   @ORM\Index(name="status", columns={"status", "profile_updated_at"})
+ *   @ORM\Index(name="status", columns={"status", "profile_updated_at"}),
+ *   @ORM\Index(name="score", columns={"lang", "score"})
  * })
  *
  */
