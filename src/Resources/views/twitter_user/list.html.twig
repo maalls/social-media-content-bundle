@@ -20,7 +20,7 @@
 
                     {% for user in pagination %}
 
-                        {% if loop.index == 1 or loop.index is divisible by(50) %}
+                        {% if (loop.index - 1) is divisible by(50) %}
                             
                             <tr>
 
@@ -87,14 +87,14 @@
                                 {{ user.friendsCount | number_format }}
                             </td>
                             <td class="text-right">
-                                {{ user.protected and not user.listedCount ? 'NA' : (user.listedCount | number_format) }}
+                                {{ not user.timelineUpdatedAt or user.protected and not user.listedCount ? 'NA' : (user.listedCount | number_format) }}
                             </td>
                             <td class="text-right">
-                                {{ user.protected and not user.retweetMedian ? 'NA' : (user.retweetMedian | number_format) }}
+                                {{ not user.timelineUpdatedAt or user.protected and not user.retweetMedian ? 'NA' : (user.retweetMedian | number_format) }}
                             </td>
                             
                             <td class="text-right">
-                                {{ user.protected and not user.favoriteMedian ? 'NA' : (user.favoriteMedian | number_format) }}
+                                {{ not user.timelineUpdatedAt or user.protected and not user.favoriteMedian ? 'NA' : (user.favoriteMedian | number_format) }}
                             </td>
                             
                             <td class="text-right">
