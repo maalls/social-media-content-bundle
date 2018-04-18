@@ -11,13 +11,15 @@ class Search {
     protected $em;
 
     protected $logger;
+    protected $counter;
 
     protected $period = 5;
 
-    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, Api $api) {
+    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, Api $api, \Maalls\SocialMediaContentBundle\Service\Firebase\FirebaseCounter $counter) {
 
         $this->em = $em;
         $this->api = $api;
+        $this->counter = $counter;
 
     }
 
@@ -31,6 +33,7 @@ class Search {
 
             try {
                 
+                $this->em->clear(EntitySearch::class);
                 $search = $this->em->getRepository(EntitySearch::class)->getNextTwitterSearch();
 
                 if($search) {
@@ -38,6 +41,11 @@ class Search {
                     $this->log("Searching search ID " . $search->getId() . " from " . $search->getMaxId() . " down to " . $search->getSinceId());
                     $total = $this->paginate($search);
                     $this->log("Search done, $total results collected.");
+                    if($total) {
+
+                        $this->counter->update();
+
+                    }
                     
 
                 }

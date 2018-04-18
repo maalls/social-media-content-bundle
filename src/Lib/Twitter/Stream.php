@@ -10,8 +10,6 @@ class Stream extends \OauthPhirehose
 
     protected $log;
 
-    protected $firebase;
-
     protected $counter;
 
     
@@ -31,9 +29,10 @@ class Stream extends \OauthPhirehose
         $this->em->clear(TwitterStream::class);
         $track = $this->em->getRepository(TwitterStream::class)->getTrack();
 
-        $current_track = $this->getTrack();
+        $current_track = $this->getTrack() ? $this->getTrack() : [];
 
-        if($current_track != $track || !$this->getTrack()) {
+        $diff = array_diff($track, $current_track) || array_diff($current_track, $track);
+        if($diff || !$this->getTrack()) {
 
             if($track) {
 
@@ -47,6 +46,8 @@ class Stream extends \OauthPhirehose
                 $this->setTrack(["hhfjh7788sdfhhY8899923"]);
 
             }
+
+            $this->filterChanged == TRUE;
 
         }
 
@@ -67,16 +68,10 @@ class Stream extends \OauthPhirehose
             $this->em->flush();
             $this->log("status: " . $tweet->getId());
 
-            if($this->firebase) {
+            if($this->counter) {
 
-                $count = $this->em->getRepository(Tweet::class)
-                    ->countAll();
-                $this->log("$count tweets");
-                $rsp = $this->firebase->set("/bazooka/twitter/", ["count" => $count, "status" => $status]);
-                $rsp = $this->firebase->set("/bazooka/total/", ["count" => $this->counter->getCount()]);
-
+                $this->counter->update();
                 
-
             }
 
         }
@@ -97,12 +92,6 @@ class Stream extends \OauthPhirehose
 
     }
 
-    public function setFirebase($firebase)
-    {
-
-        $this->firebase = $firebase;
-
-    }
 
     public function setCounter($counter)
     {
