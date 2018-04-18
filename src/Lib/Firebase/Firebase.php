@@ -16,6 +16,20 @@ class Firebase {
 
     }
 
+    public function getUrl()
+    {
+
+        return $this->url;
+
+    }
+
+    public function getKey()
+    {
+
+        return $this->key;
+
+    }
+
     public function set($path, $data)
     {
 
