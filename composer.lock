@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "de387db53ae75139c6fdd520dbc5d669",
+    "content-hash": "56ad18bf279f02fc3791e1899c1de7a7",
     "packages": [
         {
             "name": "abraham/twitteroauth",
@@ -149,18 +149,45 @@
             "time": "2016-06-14T20:11:14+00:00"
         },
         {
-            "name": "maalls/phirehose",
-            "version": "dev-master",
+            "name": "maalls/inspinia-bundle",
+            "version": "v2.7.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/maalls/phirehose.git",
-                "reference": "27fdcdf47af19b24b5f473120c0304a6f3bcaf04"
+                "url": "git@github.com:maalls/inspinia-bundle.git",
+                "reference": "971ab3005ea12c319cf86da8a4d42dbe6787fa2f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/maalls/phirehose/zipball/27fdcdf47af19b24b5f473120c0304a6f3bcaf04",
-                "reference": "27fdcdf47af19b24b5f473120c0304a6f3bcaf04",
+                "url": "https://api.github.com/repos/maalls/inspinia-bundle/zipball/971ab3005ea12c319cf86da8a4d42dbe6787fa2f",
+                "reference": "971ab3005ea12c319cf86da8a4d42dbe6787fa2f",
                 "shasum": ""
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "Maalls\\InpiniaBundle\\": "src/"
+                }
+            },
+            "authors": [
+                {
+                    "name": "maalls",
+                    "email": "maalls@gmail.com"
+                }
+            ],
+            "description": "Inspinia Bundle",
+            "support": {
+                "source": "https://github.com/maalls/inspinia-bundle/tree/v2.7.1",
+                "issues": "https://github.com/maalls/inspinia-bundle/issues"
+            },
+            "time": "2018-04-17T08:32:18+00:00"
+        },
+        {
+            "name": "maalls/phirehose",
+            "version": "dev-fix",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maalls/phirehose.git",
+                "reference": "d4bdbcf808eeb4f8c553e8e602d495cbfcb22c84"
             },
             "require": {
                 "php": ">=5.2.0"
@@ -189,25 +216,22 @@
                 "streaming",
                 "twitter"
             ],
-            "support": {
-                "source": "https://github.com/maalls/phirehose/tree/master"
-            },
-            "time": "2018-04-02T06:39:54+00:00"
+            "time": "2018-04-13T07:03:54+00:00"
         }
     ],
     "packages-dev": [
         {
             "name": "symfony/phpunit-bridge",
-            "version": "v4.0.7",
+            "version": "v4.0.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/phpunit-bridge.git",
-                "reference": "cdfbf48b17ca56bb7fbcb4126f949665e5f426a3"
+                "reference": "e82f3f46384482f2a7dab5f00c58a36b9726bde9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/phpunit-bridge/zipball/cdfbf48b17ca56bb7fbcb4126f949665e5f426a3",
-                "reference": "cdfbf48b17ca56bb7fbcb4126f949665e5f426a3",
+                "url": "https://api.github.com/repos/symfony/phpunit-bridge/zipball/e82f3f46384482f2a7dab5f00c58a36b9726bde9",
+                "reference": "e82f3f46384482f2a7dab5f00c58a36b9726bde9",
                 "shasum": ""
             },
             "require": {
@@ -260,7 +284,7 @@
             ],
             "description": "Symfony PHPUnit Bridge",
             "homepage": "https://symfony.com",
-            "time": "2018-03-22T13:42:36+00:00"
+            "time": "2018-04-04T18:24:59+00:00"
         }
     ],
     "aliases": [],

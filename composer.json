@@ -30,7 +30,8 @@
         "abraham/twitteroauth": "dev-fixes",
         "cosenary/instagram": "^2.3",
         "ktamas77/firebase-php": "^2.2",
-        "maalls/phirehose": "dev-fix"
+        "maalls/phirehose": "dev-fix",
+	"maalls/inspinia-bundle": "^2.7"
 
     },
     
