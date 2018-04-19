@@ -7,16 +7,11 @@ class StreamFactory {
     public function __construct(
         \Doctrine\Common\Persistence\ObjectManager $em, 
         Credential $credential, 
-        \Maalls\SocialMediaContentBundle\Lib\Firebase\Factory $firebaseFactory, 
-        \Maalls\SocialMediaContentBundle\Lib\Counter $counter)
+        \Maalls\SocialMediaContentBundle\Service\Firebase\FirebaseCounter $counter)
     {
 
         $this->credential = $credential;
-
         $this->em = $em;
-
-        $this->firebaseFactory = $firebaseFactory;
-
         $this->counter = $counter;
 
     }
@@ -30,8 +25,7 @@ class StreamFactory {
         $stream->setCounter($this->counter);
         $stream->consumerKey = $this->credential->consumerKey;
         $stream->consumerSecret = $this->credential->consumerSecret;
-        $stream->setFirebase($this->firebaseFactory->create());
-
+        
         return $stream;
 
     }

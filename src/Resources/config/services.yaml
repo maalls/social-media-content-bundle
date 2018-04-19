@@ -24,7 +24,7 @@ services:
           $oauthToken: '%env(TWITTER_ACCESS_TOKEN)%'
           $oauthTokenSecret: '%env(TWITTER_ACCESS_TOKEN_SECRET)%'
 
-    Maalls\SocialMediaContentBundle\Lib\Firebase\Factory:
+    Maalls\SocialMediaContentBundle\Lib\Firebase\Firebase:
       arguments:
         $url: '%env(FIREBASE_DATABASE_URL)%'
         $key: '%env(FIREBASE_API_KEY)%'

@@ -7,15 +7,16 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Maalls\SocialMediaContentBundle\Lib\LoggerOutputAdapter;
-use Maalls\SocialMediaContentBundle\Entity\InstagramCount;
+use \Maalls\SocialMediaContentBundle\Service\Firebase\FirebaseCounter as Counter;
+use \Maalls\SocialMediaContentBundle\Entity\InstagramCount;
+
 class InstagramCountCommand extends Command
 {
 
     public function __construct(
         \Doctrine\Common\Persistence\ObjectManager $em, 
         \Maalls\SocialMediaContentBundle\Lib\Instagram\Factory $factory,
-        \Maalls\SocialMediaContentBundle\Lib\Firebase\Factory $firebaseFactory,
-        \Maalls\SocialMediaContentBundle\Lib\Counter $counter
+        Counter $counter
 
     )
     {
@@ -23,7 +24,6 @@ class InstagramCountCommand extends Command
         parent::__construct();
         $this->em = $em;
         $this->api = $factory->createApi();
-        $this->firebase = $firebaseFactory->create();
         $this->counter = $counter;
 
     }
@@ -64,11 +64,9 @@ class InstagramCountCommand extends Command
                             $count->setUpdatedAt(new \Datetime());
                             $this->em->persist($count);
                             $this->em->flush();
-                            $firebaseCount = $count->getCount() - $count->getOffsetCount();
-                            $rsp = $this->firebase->set("/bazooka/instagram", ["count" => $firebaseCount, "tag" => $count->getTag()]);
-                            $rsp = $this->firebase->set("/bazooka/total/", ["count" => $this->counter->getCount()]);
+                            $this->counter->update();
                             
-                            $output->writeln($count->getTag() . ": " . $count->getCount() . " contents found, " . $firebaseCount . " reported.");
+                            $output->writeln($count->getTag() . ": " . $count->getCount());
                             break;
 
                         }
