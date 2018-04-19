@@ -28,6 +28,7 @@ class SearchRepository extends ServiceEntityRepository
                         ->andWhere("ts.query is not null or ts.query != ''")
                         ->andWhere("ts.type = 'search_tweets'")
                         ->orderBy("ts.scheduled_at", "ASC")
+                        ->setMaxResults(1)
                         ->getQuery()
                         ->getOneOrNullResult();
 

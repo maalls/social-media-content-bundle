@@ -27,7 +27,9 @@ class SearchTest extends KernelTestCase
 
         $apiMock = $this->createMock(\Maalls\SocialMediaContentBundle\Lib\Twitter\Api::class);
 
-        $twitterSearch = new TwitterSearch($em, $apiMock);
+        $counterMock = $this->createMock(\Maalls\SocialMediaContentBundle\Service\Firebase\FirebaseCounter::class);
+
+        $twitterSearch = new TwitterSearch($em, $apiMock, $counterMock);
         
         try {
             $twitterSearch->iterate($search); 
@@ -61,7 +63,7 @@ class SearchTest extends KernelTestCase
         $apiMock = $this->createMock(\Maalls\SocialMediaContentBundle\Lib\Twitter\Api::class);
         $apiMock->method('get')->willReturn($json);
         $apiMock->method('getApiDatetime')->willReturn(new \Datetime());
-        $twitterSearch = new TwitterSearch($em, $apiMock);
+        $twitterSearch = new TwitterSearch($em, $apiMock, $counterMock);
 
         $count = $twitterSearch->iterate($search);
 
