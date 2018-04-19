@@ -11,7 +11,7 @@ class Search {
 
     protected $period = 5;
 
-    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, \MetzWeb\Instagram\Instagram $api) {
+    public function __construct(\Doctrine\ORM\EntityManagerInterface $em, \MetzWeb\Instagram\Instagram $api) {
 
         $this->em = $em;
         $this->api = $api;

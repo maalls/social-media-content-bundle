@@ -6,7 +6,7 @@ namespace Maalls\SocialMediaContentBundle\Tests\Lib\Twitter;
 
 use Maalls\SocialMediaContentBundle\Tests\KernelTestCase;
 //use Maalls\SocialMediaContentBundle\Lib\Twitter\Stream;
-//use Doctrine\Common\Persistence\ObjectManager;
+//use \Doctrine\ORM\EntityManagerInterface;
 use Maalls\SocialMediaContentBundle\Lib\Twitter\Search as TwitterSearch;
 use Maalls\SocialMediaContentBundle\Entity\Search;
 class SearchTest extends KernelTestCase
@@ -27,7 +27,9 @@ class SearchTest extends KernelTestCase
 
         $apiMock = $this->createMock(\Maalls\SocialMediaContentBundle\Lib\Twitter\Api::class);
 
-        $twitterSearch = new TwitterSearch($em, $apiMock);
+        $counterMock = $this->createMock(\Maalls\SocialMediaContentBundle\Service\Firebase\FirebaseCounter::class);
+
+        $twitterSearch = new TwitterSearch($em, $apiMock, $counterMock);
         
         try {
             $twitterSearch->iterate($search); 
@@ -61,7 +63,7 @@ class SearchTest extends KernelTestCase
         $apiMock = $this->createMock(\Maalls\SocialMediaContentBundle\Lib\Twitter\Api::class);
         $apiMock->method('get')->willReturn($json);
         $apiMock->method('getApiDatetime')->willReturn(new \Datetime());
-        $twitterSearch = new TwitterSearch($em, $apiMock);
+        $twitterSearch = new TwitterSearch($em, $apiMock, $counterMock);
 
         $count = $twitterSearch->iterate($search);
 

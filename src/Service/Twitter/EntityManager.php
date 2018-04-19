@@ -3,7 +3,7 @@
 namespace Maalls\SocialMediaContentBundle\Service\Twitter;
 
 use Maalls\SocialMediaContentBundle\Lib\Twitter\Api;
-use \Doctrine\Common\Persistence\ObjectManager;
+use \Doctrine\ORM\EntityManagerInterface;
 
 class EntityManager {
 

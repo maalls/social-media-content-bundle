@@ -14,7 +14,7 @@ class InstagramCountCommand extends Command
 {
 
     public function __construct(
-        \Doctrine\Common\Persistence\ObjectManager $em, 
+        \Doctrine\ORM\EntityManagerInterface $em, 
         \Maalls\SocialMediaContentBundle\Lib\Instagram\Factory $factory,
         Counter $counter
 

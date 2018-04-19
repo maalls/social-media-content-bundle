@@ -15,7 +15,7 @@ use Maalls\SocialMediaContentBundle\Entity\Tweet;
 class TmpCommand extends Command
 {
 
-    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, \Maalls\SocialMediaContentBundle\Lib\Twitter\Api $api)
+    public function __construct(\Doctrine\ORM\EntityManagerInterface $em, \Maalls\SocialMediaContentBundle\Lib\Twitter\Api $api)
     {
 
         parent::__construct();

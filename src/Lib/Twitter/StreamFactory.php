@@ -5,7 +5,7 @@ class StreamFactory {
     
 
     public function __construct(
-        \Doctrine\Common\Persistence\ObjectManager $em, 
+        \Doctrine\ORM\EntityManagerInterface $em, 
         Credential $credential, 
         \Maalls\SocialMediaContentBundle\Service\Firebase\FirebaseCounter $counter)
     {

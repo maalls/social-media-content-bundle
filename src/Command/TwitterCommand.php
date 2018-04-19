@@ -15,7 +15,7 @@ use Maalls\SocialMediaContentBundle\Entity\TwitterUserFollower;
 class TwitterCommand extends Command
 {
 
-    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em)
+    public function __construct(\Doctrine\ORM\EntityManagerInterface $em)
     {
 
         parent::__construct();

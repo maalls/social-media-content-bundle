@@ -6,7 +6,7 @@ namespace Maalls\SocialMediaContentBundle\Tests\Lib\Instagram;
 
 use Maalls\SocialMediaContentBundle\Tests\KernelTestCase;
 //use Maalls\SocialMediaContentBundle\Lib\Twitter\Stream;
-//use Doctrine\Common\Persistence\ObjectManager;
+//use \Doctrine\ORM\EntityManagerInterface;
 use Maalls\SocialMediaContentBundle\Lib\Instagram\Search as Search;
 
 
@@ -41,7 +41,7 @@ class SearchTest extends KernelTestCase
 
         var_dump($rsp);
 
-        $em = $this->createMock(\Doctrine\Common\Persistence\ObjectManager::class);
+        $em = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
 
         $search = new Search($em, $api);
 

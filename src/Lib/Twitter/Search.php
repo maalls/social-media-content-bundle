@@ -15,7 +15,7 @@ class Search {
 
     protected $period = 5;
 
-    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em, Api $api, \Maalls\SocialMediaContentBundle\Service\Firebase\FirebaseCounter $counter) {
+    public function __construct(\Doctrine\ORM\EntityManagerInterface $em, Api $api, \Maalls\SocialMediaContentBundle\Service\Firebase\FirebaseCounter $counter) {
 
         $this->em = $em;
         $this->api = $api;

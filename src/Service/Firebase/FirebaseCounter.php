@@ -9,7 +9,7 @@ class FirebaseCounter {
     private $firebase;
     private $em;
 
-    public function __construct(\Maalls\SocialMediaContentBundle\Lib\Firebase\Firebase $firebase, \Doctrine\Common\Persistence\ObjectManager $em)
+    public function __construct(\Maalls\SocialMediaContentBundle\Lib\Firebase\Firebase $firebase, \Doctrine\ORM\EntityManagerInterface $em)
     {
 
         $this->firebase = $firebase;
