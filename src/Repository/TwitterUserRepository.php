@@ -42,15 +42,15 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
     }
 
-    public function updateAllTimelines($taskId = null)
+    public function updateAllTimelines($followers_count = 10000, $taskId = null)
     {
         $taskId = $taskId ? $taskId : str_pad(getmypid(), 6, "0");
 
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
         $conn->getConfiguration()->setSQLLogger(null);
-        $totalStmt = $conn->prepare("select count(id) from twitter_user where timeline_updated_at is null and status = 200 and lang = 'ja' and followers_count > 10000 and protected = 0");
-        $lockStmt = $conn->prepare("update twitter_user set status = ? where timeline_updated_at is null and status = 200 and lang = 'ja' and followers_count > 10000 and protected = 0 limit 20");
+        $totalStmt = $conn->prepare("select count(id) from twitter_user where timeline_updated_at is null and status = 200 and lang = 'ja' and followers_count >= $followers_count and protected = 0");
+        $lockStmt = $conn->prepare("update twitter_user set status = ? where timeline_updated_at is null and status = 200 and lang = 'ja' and followers_count >= $followers_count and protected = 0 order by followers_count desc limit 20");
         
         $done = 0;
         $lastTotalUpdate = null;
@@ -162,7 +162,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
     public function updateTimeline($user, $use_cache = true)
     {
 
-        $this->log("Updating timeline for user ID " . $user->getId() . " " . $user->getScreenName());
+        $this->log("Updating timeline for user ID " . $user->getId() . " " . $user->getScreenName() . " " . $user->getFollowersCount() . " followers");
         $em = $this->getEntityManager();
         $tweetRep = $em->getRepository(Tweet::class);
 
@@ -173,7 +173,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
             
             if(isset($timeline->errors)) {
 
-                $error = $timelin->errors[0]; 
+                $error = $timeline->errors[0]; 
 
                 switch($error->code) {
 

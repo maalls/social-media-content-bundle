@@ -40,9 +40,13 @@ class TwitterUserTimelineUpdateCommand extends Command
         $rep->setLogger($logger);
         $tRep = $this->em->getRepository(Tweet::class);
         $tRep->setLogger($logger);
+        $followerCount = 10000;
+
         do {
-            
-            $rep->updateAllTimelines();  
+            $logger->log("Updating followers above $followerCount followers.");
+            $rep->updateAllTimelines($followerCount);  
+            $logger->log("All timelines updated for follower above $followerCount");
+            $followerCount = round($followerCount * 2 / 3);
             sleep(5);
             
         }
