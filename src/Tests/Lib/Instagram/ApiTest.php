@@ -6,7 +6,7 @@ namespace Maalls\SocialMediaContentBundle\Tests\Lib\Instagram;
 
 use Maalls\SocialMediaContentBundle\Tests\KernelTestCase;
 //use Maalls\SocialMediaContentBundle\Lib\Twitter\Stream;
-//use Doctrine\Common\Persistence\ObjectManager;
+//use \Doctrine\ORM\EntityManagerInterface;
 use Maalls\SocialMediaContentBundle\Lib\Instagram\Api;
 use Maalls\SocialMediaContentBundle\Lib\Logger\Logger;
 

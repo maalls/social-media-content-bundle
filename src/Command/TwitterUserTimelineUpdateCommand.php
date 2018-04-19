@@ -13,7 +13,7 @@ use Maalls\SocialMediaContentBundle\Entity\Tweet;
 class TwitterUserTimelineUpdateCommand extends Command
 {
 
-    public function __construct(\Doctrine\Common\Persistence\ObjectManager $em)
+    public function __construct(\Doctrine\ORM\EntityManagerInterface $em)
     {
 
         parent::__construct();

@@ -5,7 +5,7 @@ namespace Maalls\SocialMediaContentBundle\Tests\Repository;
 
 
 use Maalls\SocialMediaContentBundle\Tests\KernelTestCase;
-use Doctrine\Common\Persistence\ObjectManager;
+use \Doctrine\ORM\EntityManagerInterface;
 use Maalls\SocialMediaContentBundle\Entity\Search;
 
 class SearchRepositoryTest extends KernelTestCase

@@ -6,7 +6,7 @@ namespace Maalls\SocialMediaContentBundle\Tests\Lib\Twitter;
 
 use Maalls\SocialMediaContentBundle\Tests\KernelTestCase;
 //use Maalls\SocialMediaContentBundle\Lib\Twitter\Stream;
-//use Doctrine\Common\Persistence\ObjectManager;
+//use \Doctrine\ORM\EntityManagerInterface;
 use Maalls\SocialMediaContentBundle\Lib\Twitter\Search as TwitterSearch;
 use Maalls\SocialMediaContentBundle\Entity\Search;
 class SearchTest extends KernelTestCase
