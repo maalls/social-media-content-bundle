@@ -94,7 +94,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
                 
                 if($users) {
                 
-                    $this->log($taskId . " " . number_format($done) . "/" . number_format($total) . " processing " . count($users) . " users in batch.");    
+                    $this->log($taskId . " " . number_format($done) . "/" . number_format($total) . " of user over $followers_count followers, processing " . count($users) . " users in batch.");    
                     $this->updateTimelines($users);
                     $done += count($users);
                     $this->log("done");
