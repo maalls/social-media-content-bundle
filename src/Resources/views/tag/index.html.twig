@@ -1,0 +1,56 @@
+{% extends '@SocialMediaContent/base.html.twig' %}
+
+{% block breadcrumb %}
+    {{ include('@SocialMediaContent/breadcrumb.html.twig', { levels: [{name: 'Tags'}] })}}
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="ibox">
+        <div class="ibox-title">
+            <h5>{{ pagination.getTotalItemCount | number_format }} Tags</h5>
+            <div class="ibox-tools">
+                <a href="{{ path('tags_create') }}" class="btn btn-primary btn-xs">Create new Tag</a>
+            </div>
+        </div>
+        <div class="ibox-content">
+            
+
+            <div class="project-list">
+
+                <div class="navigation">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+
+                <table class="table table-hover">
+                    <tbody>
+
+                        {% for tag in pagination %}
+
+                            {% if (loop.index - 1) is divisible by(20) %}
+                                
+                                <tr>
+                                    <th>Name</th>
+                                </tr>
+                            
+                            {% endif %}
+
+                            <tr>
+                                <td>
+                                    <a href="{{ path('tags_show', {id: tag.id}) }}">{{ tag.name }}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="navigation">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

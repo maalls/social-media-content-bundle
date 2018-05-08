@@ -169,6 +169,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
         $retry = 5;
 
         do {
+            
             $timeline = $this->api->get("statuses/user_timeline", ["user_id" => $user->getId(), "count" => 200], $use_cache);
             
             if(isset($timeline->errors)) {
@@ -267,7 +268,19 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
             if(isset($timeline->errors)) {
 
-                throw new \Exception($timeline->errors[0]->message, $timeline->errors[0]->code);
+                if($timeline->errors[0]->code == 34) {
+
+                    $this->log("User 404ed.");
+                    $user->setStatus(404);
+                    $user->setTimelineUpdatedAt($dataDatetime);
+                    $em->flush();
+
+                }
+                else {
+                
+                    throw new \Exception($timeline->errors[0]->message, $timeline->errors[0]->code);
+
+                }
 
             }
             elseif(isset($timeline->error) && $timeline->error == "Not authorized.") {
@@ -553,6 +566,28 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
         $user->setProfileUpdatedAt($dataDatetime);
         
         $user->setLocation($profile->location);
+
+        $entities = $profile->entities;
+
+        if(isset($entities->url)) {
+
+            $count = count($entities->url->urls);
+
+            $url = $entities->url->urls[0]->expanded_url;
+            if($count > 1) {
+
+                throw new \Exception("Multiple URL user!" . $user->getId());
+
+            }
+            else {
+
+                $user->setUrl($url);
+                
+
+            }
+
+        }
+
 
         return $user;
 

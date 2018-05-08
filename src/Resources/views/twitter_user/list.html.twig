@@ -20,7 +20,7 @@
 
                     {% for user in pagination %}
 
-                        {% if (loop.index - 1) is divisible by(50) %}
+                        {% if (loop.index - 1) is divisible by(20) %}
                             
                             <tr>
 
@@ -52,7 +52,6 @@
 
                                     </th>
                                 {% endfor %}
-                                <th  class="text-right">Twitter page</th>
                             </tr>
                         
                         {% endif %}
@@ -63,19 +62,21 @@
                             </td>
                             <td>
                                 {% if user.screenName %}
-                                    <img src="https://twitter.com/@{{ user.screenName }}/profile_image?size=normal" width="35" height="35">
+                                    <img src="https://avatars.io/twitter/{{ user.screenName }}" width="35" height="35">
                                 {% endif %}
                             </td>
                             <td>
                                 {% if user.name %}
                                     <a href="{{ path('twitter_users_show', {id: user.id}) }}">{{ user.name }}</a>
                                     {% if user.verified %}<i style="color:#1dcaff" class="fa fa-check-circle"></i>{% endif %}
-                                    {% if user.protected %}<i  class="fa fa-lock"></i>{% endif %}
+                                    {% if user.protected %}<i  class="fa fa-lock"></i>{% endif %} <a href="https://twitter.com/{{user.screenName }}" target="_blank"><i class="fa fa-external-link"></i></a>
                                     <br/>@{{ user.screenName }}
                                 {% else %}
-                                    User {{ user.id }} 
+                                    User {{ user.id }} <a href="https://twitter.com/{{user.screenName }}" target="_blank"><i class="fa fa-external-link"></i></a>
                                     <br/><small>Information not collected yet, please wait.</small>
                                 {% endif %}
+
+                                
                                 
                                 
                             </td>
@@ -97,9 +98,6 @@
                                 {{ not user.timelineUpdatedAt or user.protected and not user.favoriteMedian ? 'NA' : (user.favoriteMedian | number_format) }}
                             </td>
                             
-                            <td class="text-right">
-                                <a href="https://twitter.com/{{user.screenName }}" target="_blank"><i class="fa fa-external-link"></i></a>
-                            </td>
                         </tr>
                     {% endfor %}
 

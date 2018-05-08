@@ -78,37 +78,62 @@ class Api extends \Maalls\SocialMediaContentBundle\Lib\Loggable {
     {
 
         $retry = 5;
+        $sleep = 5;
 
         for($i = 0; $i < $retry; $i++) {
 
             try {
 
                 $api = $this->create();
-                return $api->get($action, $parameters);
+                $rsp = $api->get($action, $parameters);
+
+                if(isset($rsp->errors)) {
+
+                    $error = $rsp->errors[0];
+
+                    switch($error->code) {
+
+
+                        case 130:
+                        case 131:
+                            sleep(10 * (6 - $retry));
+                            $retry--;
+                            break;
+                        default:
+                            return $rsp;
+                    }
+
+                }
+                else {
+
+                    return $rsp;
+
+                }
 
 
             }
             catch(\Abraham\TwitterOAuth\TwitterOAuthException $e) {
 
                 $this->log("Connection timeout, retrying in 5sec.");
-                sleep(5);
-                $retry--;
+                sleep($sleep);
+
 
             }
             catch(\Exception $e) {
 
             
                 $this->log("Error " . get_class($e) . " : " . $e->getMessage(). " (" . $e->getCode() . ") retrying in few sec.");
-                sleep(5);
-                $retry--;
+                sleep($sleep);
 
             
 
             }
 
+            $sleep = 2*$sleep;
+
         }
 
-        throw $e;
+        throw new \Exception("Unable to query Twitter.");
 
     }
 

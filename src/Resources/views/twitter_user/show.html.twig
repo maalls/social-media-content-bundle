@@ -57,9 +57,13 @@
                                                 <tr>
                                                     <td>
                                                         <a href="{{ path('twitter_users_show', {id: user.id }) }}">
-                                                            <img src="https://twitter.com/@{{ user.screenName }}/profile_image?size=mini"  /> 
+                                                            <img height="20" src="https://avatars.io/twitter/{{ user.screenName }}?size=mini"  /> 
                                                             {{ user.name }}
                                                             @{{ user.screenName }} 
+                                                        </a>
+
+                                                        <a target="_blank" href="https://twitter.com/{{ user.screenName }}">
+                                                            <i class="fa fa-external-link"></i>
                                                         </a>
                                                     </td>
                                                     <td class="text-right">

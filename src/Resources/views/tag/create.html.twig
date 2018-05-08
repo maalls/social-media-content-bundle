@@ -1,0 +1,31 @@
+{% extends '@SocialMediaContent/base.html.twig' %}
+
+{% block breadcrumb %}
+    {{ include('@SocialMediaContent/breadcrumb.html.twig', { levels: [{link: path('tags'), name: 'Tags'}, {name: 'New'}] })}}
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Create new tag</h5>
+                    <div class="ibox-tools">
+                        
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    
+
+                    {{ form_start(form) }}
+                    {{ form_widget(form) }}
+                    {{ form_end(form) }}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

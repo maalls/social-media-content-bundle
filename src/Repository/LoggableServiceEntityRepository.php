@@ -2,7 +2,7 @@
 
 
 namespace Maalls\SocialMediaContentBundle\Repository;
-use \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 abstract class LoggableServiceEntityRepository extends ServiceEntityRepository {
 
