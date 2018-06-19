@@ -41,4 +41,47 @@ class TwitterStreamTest extends KernelTestCase
 
     }
 
+    public function testGenerateFromStatusId()
+    {
+
+        $expected_id = 908233161561088001;
+        $status = $this->getRepository()->generateFromStatusId($expected_id);
+
+        $this->assertEquals($expected_id, $status->getId());
+        $this->assertEquals("2017-09-14 07:37:14", $status->getPostedAt()->format("Y-m-d H:i:s"));
+
+        $tweet = $this->getRepository()->find($expected_id);
+        $this->assertEquals($expected_id, $tweet->getId());
+
+    }
+
+    public function testUpdateRetweets()
+    {
+
+        $em = $this->getEntityManager();
+        $rep = $em->getRepository(Tweet::class);
+
+        $tweet = new Tweet();
+        $tweet->setId(908233161561088001);
+        $tweet->setPostedAt(new \Datetime('2016-10-03 06:28:00'));
+        $tweet->setStatsUpdatedAt(new \Datetime());
+        $em->persist($tweet);
+        $em->flush();
+
+        $count = $rep->updateRetweets($tweet, true);
+
+        $this->assertGreaterThanOrEqual(1, $count);
+
+        $retweets = $rep->findBy(["retweet_status" => $tweet->getId()]);
+
+        $this->assertEquals($count, count($retweets));
+    }
+
+    protected function getRepository()
+    {
+
+        return $this->em->getRepository(Tweet::class);
+
+    }
+
 }

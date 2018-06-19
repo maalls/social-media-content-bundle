@@ -1,0 +1,5 @@
+{% for tag in tags %}
+
+    <a href="{{ path('users_tags_toggle', {user: user.id, tag: tag.id}) }}" class="ajax-toggle-btn btn btn-xs {{ user.hasTag(tag) ? 'btn-primary' : 'btn-white' }}">{{ tag.name }}</a>
+
+{% endfor %}

@@ -7,6 +7,8 @@ use Maalls\SocialMediaContentBundle\Entity\TwitterUser;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Maalls\SocialMediaContentBundle\Repository\LoggableServiceEntityRepository;
+use Maalls\SocialMediaContentBundle\Lib\Twitter\Api;
+
 /**
  * @method Tweet|null find($id, $lockMode = null, $lockVersion = null)
  * @method Tweet|null findOneBy(array $criteria, array $orderBy = null)
@@ -15,9 +17,14 @@ use Maalls\SocialMediaContentBundle\Repository\LoggableServiceEntityRepository;
  */
 class TweetRepository extends LoggableServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+
+    protected $api;
+
+    public function __construct(RegistryInterface $registry, Api $api)
     {
         parent::__construct($registry, Tweet::class);
+
+        $this->api = $api;
     }
 
 
@@ -28,6 +35,30 @@ class TweetRepository extends LoggableServiceEntityRepository
                     ->select("count(t)")
                     ->getQuery()
                     ->getSingleScalarResult();
+
+    }
+
+    public function generateFromStatusId($status_id)
+    {
+
+        $status = $this->api->get("statuses/show/" . $status_id);
+
+        $tweet = $this->generateFromJson($status, $this->api->getApiDatetime());
+
+        $this->getEntityManager()->flush();
+
+        return $tweet;
+
+    }
+
+    public function updateRetweets($tweet, $use_cache = true)
+    {
+
+        $retweets = $this->api->get("statuses/retweets/" . $tweet->getId(), ["count" => 100], $use_cache);
+
+        $this->generateFromJsons($retweets, $this->api->getApiDatetime());
+        $this->getEntityManager()->flush();
+        return count($retweets);
 
     }
 

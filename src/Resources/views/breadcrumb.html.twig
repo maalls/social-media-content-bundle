@@ -3,7 +3,7 @@
         <h2></h2>
         <ol class="breadcrumb">
             <li>
-                <a href="{{ path('smc_home') }}">Home</a>
+                <a href="{{ path('smc_home') }}" class="{{ levels ? '': 'active' }}">Home</a>
             </li>
             {% for level in levels %}
                 <li class="{{ loop.last ? 'active' : '' }}">

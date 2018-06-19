@@ -73,6 +73,43 @@ class Tweet
     */
     protected $stats_updated_at;
 
+    /**
+     * @ORM\OneToMany(targetEntity="Maalls\SocialMediaContentBundle\Entity\Tweet", mappedBy="retweet_status")
+     */
+    protected $retweets;
+
+    /**
+    * @ORM\Column(type="datetime", nullable=true)
+    */
+    protected $retweets_updated_at;
+
+    public function __construct()
+    {
+
+        $this->retweets = new \Doctrine\Common\Collections\ArrayCollection();
+
+    }
+
+    public function setRetweetsUpdatedAt(\Datetime $dateTime)
+    {
+
+        $this->retweets_updated_at = $dateTime;
+
+    }
+
+    public function getRetweetsUpdatedAt()
+    {
+
+        $this->retweets_updated_at;
+
+    }
+
+    public function getRetweets()
+    {
+
+        return $this->retweets;
+
+    }
 
     public function getHtml()
     {

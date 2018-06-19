@@ -20,6 +20,9 @@
 
                     {% for user in pagination %}
 
+                        {% if getter is defined %}
+                            {% set user = attribute(user, getter) %}
+                        {% endif %}
                         {% if (loop.index - 1) is divisible by(20) %}
                             
                             <tr>
@@ -83,6 +86,7 @@
                            
                             <td class="text-right">
                                 {{ user.protected and not user.followersCount ? 'NA' : (user.followersCount | number_format) }}
+                                {{ user.followersUpdatedAt ? '*' : '' }}
                             </td>
                             <td class="text-right">
                                 {{ user.friendsCount | number_format }}

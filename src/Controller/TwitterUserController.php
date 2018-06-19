@@ -32,7 +32,8 @@ class TwitterUserController extends Controller
             ->getManager()
             ->getRepository(TwitterUser::class)
             ->createQueryBuilder("u")
-            ->where("u.lang = 'ja' and u.followers_count > 10000")
+            ->where("u.lang = 'ja'")
+            ->setMaxResults(10000)
             ->orderBy("u.score", "DESC");
 
         $search = $request->query->get("search");
@@ -102,7 +103,7 @@ class TwitterUserController extends Controller
     {
 
         $followers_count = $user->getFollowersCount();
-        if($followers_count > 5000 && !$user->getFollowersUpdatedAt()) {
+        if($followers_count > 100000 && !$user->getFollowersUpdatedAt()) {
 
             throw new \Exception("To many followers.");
 
@@ -112,13 +113,23 @@ class TwitterUserController extends Controller
 
         $rep->generateFollowersFromTwitterUser($user);
         
-        $query = $this->getDoctrine()->getManager()->getRepository(TwitterUser::class)->createQueryBuilder("u")
-            ->join("u.friends", "f")
-            ->where("f.twitterUser = :u")->setParameter("u", $user)
+        $query = $this->getDoctrine()->getManager()->getRepository(TwitterUserFollower::class)->createQueryBuilder("f")
+
+            ->where("f.twitterUser = :i")->setParameter("i", $user)
+            ->join("f.follower", "u")
+            ->addSelect("u")
             ->getQuery();
 
         $paginator  = $this->get('knp_paginator');
 
+
+        $count = $this->getDoctrine()->getManager()->getRepository(TwitterUserFollower::class)->createQueryBuilder("f")
+            ->where("f.twitterUser = :i")->setParameter("i", $user)
+            ->select("count(f)")
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $query->setHint("knp_paginator.count", $count);
         $pagination = $paginator->paginate(
             $query, 
             $request->query->getInt('page', 1),
@@ -170,8 +181,15 @@ class TwitterUserController extends Controller
      * @Route("/{id}", name="twitter_users_show")
      * @Template
      */
-    public function showAction(TwitterUser $user, Request $request)
+    public function showAction($id, Request $request)
     {
+
+        $user = $this->getDoctrine()
+                ->getManager()
+                ->getRepository(TwitterUser::class)
+                ->createQueryBuilder("u")
+                ->where("u.id = :id")->setParameter("id", $id)
+                ->select("u")->getQuery()->getSingleResult();
 
         $stats = [
             "stats" => [
@@ -193,6 +211,7 @@ class TwitterUserController extends Controller
                 ->getManager()
                 ->getRepository(Tweet::class)
                 ->createQueryBuilder("t")
+                ->select("t")
                 ->where("t.user = :user")->setParameter("user", $user);
 
             $sort = $request->query->get("sort", "id");
@@ -202,20 +221,7 @@ class TwitterUserController extends Controller
                 ->getQuery()
                 ->getResult();
 
-            $retweeters = $this->getDoctrine()
-                ->getManager()
-                ->getRepository(TwitterUser::class)
-                
-                ->createQueryBuilder("u")
-                ->distinct('u')
-                ->select("u")
-                ->join("u.tweets", "t")
-                ->join("t.retweet_status", "rt")
-                ->join("rt.user", "ru")
-                ->where("ru = :user")->setParameter("user", $user)
-                ->addOrderBy("u.followers_count", "DESC")
-                ->getQuery()
-                ->getResult();
+            
 
             $retweets = [];
             $favorites = [];
@@ -255,7 +261,7 @@ class TwitterUserController extends Controller
                       
         }
 
-        return ["user" => $user, "timeline" => $timeline, "stats" => $stats, "retweeters" => $retweeters];
+        return ["user" => $user, "timeline" => $timeline, "stats" => $stats];
     }
 
 }

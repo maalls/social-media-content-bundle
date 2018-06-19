@@ -1,0 +1,37 @@
+<div class="feed-activity-list">
+{% for item in tweets %}
+
+    {% set tweet = item.retweetStatus ? item.retweetStatus : item %}
+
+    <div class="feed-element {{ tweet.inReplyToStatusId or tweet.isReply ? 'reply' : '' }} {{ item.retweetStatus ? 'retweet' : '' }} {{ item.isQuoteStatus ? 'quote' : '' }}">
+        <a href="{{ path('twitter_tweets_show', {id: tweet.id }) }}" class="pull-left">
+            <img alt="image" class="img-circle" src="https://avatars.io/twitter/{{ tweet.user.screenName }}/profile_image?size=normal">
+        </a>
+        <div class="media-body ">
+
+            <a target="_blank" href="https://twitter.com/{{ tweet.user.screenName }}/status/{{ tweet.id }}"><small class="pull-right text-right">{{ tweet.postedAt | ago }}<br/>{{ tweet.postedAt.format('Y-m-d H:i:s') }}</small></a>
+
+            {% if user is defined and tweet.user != user %}
+
+                <i class="fa fa-retweet"></i> {{ user.name }} retweeted<br/>
+
+            {% endif %}
+            <a href="{{ path('twitter_users_show', {id: tweet.user.id}) }}"><strong>{{ tweet.user.name }}</strong></a>
+
+            {% if tweet.inReplyToStatusId %}
+                in reply to {{ tweet.inReplyToStatusId }}
+            {% endif %}
+            <br>
+            
+            <div class="well">
+                {{ tweet.html | raw }}
+            </div>
+            <div class="">
+                <a href="{{ path('twitter_tweets_retweets', {id: tweet.id}) }}"><i class="fa fa-retweet"></i> {{ tweet.retweetCount | number_format }} </a> 
+                <i class="fa fa-heart"></i> {{ tweet.favoriteCount | number_format }} 
+            </div>
+        </div>
+    </div>
+
+{% endfor %}
+</div>

@@ -390,7 +390,7 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
 
 
         }
-        while($ids);
+        while(isset($ids) && $ids);
 
         pcntl_signal(SIGINT,  SIG_DFL);
 
@@ -567,22 +567,25 @@ class TwitterUserRepository extends LoggableServiceEntityRepository
         
         $user->setLocation($profile->location);
 
-        $entities = $profile->entities;
+        if(isset($profile->entities)) {
+            $entities = $profile->entities;
 
-        if(isset($entities->url)) {
+            if(isset($entities->url)) {
 
-            $count = count($entities->url->urls);
+                $count = count($entities->url->urls);
 
-            $url = $entities->url->urls[0]->expanded_url;
-            if($count > 1) {
+                $url = $entities->url->urls[0]->expanded_url;
+                if($count > 1) {
 
-                throw new \Exception("Multiple URL user!" . $user->getId());
+                    throw new \Exception("Multiple URL user!" . $user->getId());
 
-            }
-            else {
+                }
+                else {
 
-                $user->setUrl($url);
-                
+                    $user->setUrl($url);
+                    
+
+                }
 
             }
 

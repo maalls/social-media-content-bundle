@@ -148,6 +148,11 @@ class TwitterUser
     private $followers;
 
     /**
+     * @ORM\OneToMany(targetEntity="Maalls\SocialMediaContentBundle\Entity\UserTag", mappedBy="user")
+     */
+    private $userTags = [];
+
+    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $status = 200;
@@ -157,11 +162,34 @@ class TwitterUser
         $this->tweets = new \Doctrine\Common\Collections\ArrayCollection();
         $this->followers = new \Doctrine\Common\Collections\ArrayCollection();
         $this->friends = new \Doctrine\Common\Collections\ArrayCollection();
-    
+        $this->userTags = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
 
+    public function hasTag($tag)
+    {
 
+        foreach($this->getUserTags() as $userTag) {
+
+            if($userTag->getTag()->getId() == $tag->getId()) {
+
+                return $userTag;
+
+            }
+
+        }
+
+        return false;
+
+    }
+
+
+    public function getUserTags()
+    {
+
+        return $this->userTags;
+
+    }
 
     /**
      * @return mixed

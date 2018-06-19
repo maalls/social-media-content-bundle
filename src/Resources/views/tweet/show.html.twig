@@ -1,0 +1,35 @@
+{% extends '@SocialMediaContent/base.html.twig' %}
+
+{% block breadcrumb %}
+    {{ include('@SocialMediaContent/tweet/breadcrumb.html.twig', {levels : [{'name': tweet.id}]}) }}
+{% endblock %}
+
+{% block content %}
+
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="ibox">
+                
+                <div class="ibox-content">
+                    {{ include('@SocialMediaContent/tweet/feed.html.twig', {tweets: [tweet] }) }}
+
+                    <hr/>
+
+                    {{ include('@SocialMediaContent/twitter_user/retweeters.html.twig', { 'list': tweet.retweets }) }}
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="ibox">
+                
+                <div class="ibox-content">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

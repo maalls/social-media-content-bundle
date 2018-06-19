@@ -65,8 +65,27 @@
 
     <div class="col-sm-12">
         <p>
-            <small class="pull-right">profile updated {{ user.profileUpdatedAt | ago }}</small>
+            <small class="pull-right">
+
+                profile updated {{ user.profileUpdatedAt | ago }}
+                {% if user.followersUpdatedAt %}
+                    <br/>followers updated {{ user.followersUpdatedAt | ago }}
+                {% endif %}
+
+            </small>
+            
         </p>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-sm-12">
+        {{ render(controller(
+            'Maalls\\SocialMediaContentBundle\\Controller\\UserTagController::select',
+            { 'user': user.id }
+        )) }}
     </div>
 
 </div>

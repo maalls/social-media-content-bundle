@@ -1,0 +1,28 @@
+
+
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Tweets</h5>
+                <div class="ibox-tools">
+                    <form>
+                        ID <input type="text" name="q[id]" value="{{ q.id }}" />
+                        <button type="submit">Submit</button>
+                    </form>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                <div>
+                    
+                    {{ include('@SocialMediaContent/tweet/feed.html.twig', {tweets: pagination })}}
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

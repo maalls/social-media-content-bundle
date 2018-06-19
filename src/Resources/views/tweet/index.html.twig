@@ -1,1 +1,11 @@
-Hello
+{% extends '@SocialMediaContent/base.html.twig' %}
+
+{% block breadcrumb %}
+    {{ include('@SocialMediaContent/tweet/breadcrumb.html.twig', {levels : []}) }}
+{% endblock %}
+
+{% block content %}
+
+    {{ include('@SocialMediaContent/tweet/list.html.twig', {pagination: pagination })}}
+
+{% endblock %}

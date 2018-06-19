@@ -12,8 +12,9 @@ class UserTag
 {
 
     /**
-     * @ORM\Id()
-     * @ORM\Column(type="bigint", options={"unsigned"=true})
+     * @ORM\Id
+     * @ORM\GeneratedValue
+     * @ORM\Column(type="integer")
      */
     private $id;
 

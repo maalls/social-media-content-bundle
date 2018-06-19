@@ -1,0 +1,3 @@
+{% set levels = [{name: 'Tweets', link: path('twitter_tweets') }] | merge (levels) %}
+
+{{ include('@SocialMediaContent/breadcrumb.html.twig', levels) }}

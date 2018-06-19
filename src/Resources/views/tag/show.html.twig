@@ -1,7 +1,7 @@
 {% extends '@SocialMediaContent/base.html.twig' %}
 
 {% block breadcrumb %}
-    {{ include('@SocialMediaContent/breadcrumb.html.twig', { levels: [{link: path('tags'), name: 'Tags'}, {name: 'New'}] })}}
+    {{ include('@SocialMediaContent/breadcrumb.html.twig', { levels: [{link: path('tags'), name: 'Tags'}, {name: tag.name }] })}}
 {% endblock %}
 
 
@@ -17,7 +17,7 @@
         <div class="ibox-content">
             
 
-            <p>OK</p>
+            {{ include('@SocialMediaContent/twitter_user/list.html.twig', {'pagination': pagination }) }}
 
         </div>
     </div>

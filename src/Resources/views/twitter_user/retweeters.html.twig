@@ -1,0 +1,44 @@
+<h4>{{ list | length | number_format }} Retweets from</h4>
+
+
+
+{% if not list | length  %}
+
+    <p>No retweet found in the database.</p>
+
+{% else %}
+<table class="table">
+    <tr>
+
+        <th>Name</th>
+        <th class="text-right">Followers</th>
+    {% set total_followers = 0 %}
+    {% for item in list %}
+        {% set user = item.user is defined ? item.user : item %}
+
+        <tr>
+            <td>
+                <a href="{{ path('twitter_users_show', {id: user.id }) }}">
+                    <img height="20" src="https://avatars.io/twitter/{{ user.screenName }}?size=mini"  /> 
+                    {{ user.name }}
+                    @{{ user.screenName }} 
+                </a>
+
+                <a target="_blank" href="https://twitter.com/{{ user.screenName }}">
+                    <i class="fa fa-external-link"></i>
+                </a>
+            </td>
+            <td class="text-right">
+                {{ user.followersCount | number_format }}
+            </td>
+
+        </tr>
+        {% set total_followers = total_followers + user.followersCount %}
+    {% endfor %}
+
+    <tr>
+        <th>Total</th>
+        <th class="text-right">{{ total_followers | number_format }}</th>
+    </tr>
+</table>
+{% endif %}

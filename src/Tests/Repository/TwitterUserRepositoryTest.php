@@ -156,8 +156,8 @@ class TwitterUserRepositoryTest extends KernelTestCase
             ->method('getApiDatetime')
             ->willReturn(new \Datetime("1885-07-16 02:03:04"));
 
-        $rep = $this->em->getRepository(TwitterUser::class);
-        $rep->setApi($apiMock);
+        $rep = $this->em->getRepository(TwitterUser::class, $apiMock);
+        
 
         $result = $rep->updateTimeline($user);
 
@@ -167,7 +167,7 @@ class TwitterUserRepositoryTest extends KernelTestCase
         $this->assertEquals(8193, $user->getPostPeriodMedian());
         $this->assertEquals("1885-07-16 02:03:04", $user->getTimelineUpdatedAt()->format("Y-m-d H:i:s"));
         
-        $count = $this->em->getRepository(Tweet::class)
+        $count = $this->em->getRepository(Tweet::class, $apiMock)
             ->createQueryBuilder("t")->select("count(t)")
             ->where("t.user = :user")->setParameter("user", $user)
             ->getQuery()

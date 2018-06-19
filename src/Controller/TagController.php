@@ -9,7 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Maalls\SocialMediaContentBundle\Entity\Tag;
 use Maalls\SocialMediaContentBundle\Form\TagType;
-
+use Maalls\SocialMediaContentBundle\Entity\TwitterUser;
 /**
  * @Route("/tags")
  */
@@ -48,7 +48,20 @@ class TagController extends Controller
 
         $tag = $this->getDoctrine()->getManager()->getRepository(Tag::class)->find($id);
 
-        return ["tag" => $tag];
+        $qb = $this->getDoctrine()->getManager()->getRepository(TwitterUser::class)
+            ->createQueryBuilder("u")
+            ->join("u.userTags", "ut")
+            ->where("ut.tag = :tag")->setParameter("tag", $tag);
+
+        $query = $qb->getQuery();
+        $paginator  = $this->get('knp_paginator');
+        $pagination = $paginator->paginate(
+            $query, 
+            $request->query->getInt('page', 1),
+            200
+        );
+
+        return ["tag" => $tag, "pagination" => $pagination];
 
     }
 
