@@ -9,6 +9,7 @@ class Api extends \Maalls\SocialMediaContentBundle\Lib\Loggable {
     private $nextIndex = 0;
     private $cacheLocation = '';
     private $apiDatetime = null;
+    private $cacheDuration = null;
     
     public function __construct($twitter_credentials_file = '', $twitter_api_cache_folder = '') {
 
@@ -33,14 +34,39 @@ class Api extends \Maalls\SocialMediaContentBundle\Lib\Loggable {
 
     }
 
-    public function get($action, $parameters = [], $use_cache = true)
+    public function get($action, $parameters = [], $force_cache = true)
     {
 
         if($this->cacheLocation) {
             
             $cache_file = $this->getCacheFilename($action, $parameters);
 
-            if(file_exists($cache_file) && $use_cache) {
+            $use_cache = false;
+
+            if(file_exists($cache_file)) {
+
+                $updated_at = filemtime($cache_file);
+                if($force_cache) {
+
+                    $this->log("Force cache");
+                    $use_cache = true;
+
+                }
+                elseif($this->cacheDuration === null) {
+
+                    $this->log("Cache duration null");
+                    $use_cache = true;
+
+                }
+                elseif(($updated_at + $this->cacheDuration) > time()) {
+
+                    $this->log("Cache unexpired.");
+                    $use_cache = true;
+
+                }
+            }
+
+            if($use_cache) {
 
                 $this->log("Cached API.");
                 $rsp = json_decode(file_get_contents($cache_file));
@@ -238,12 +264,19 @@ class Api extends \Maalls\SocialMediaContentBundle\Lib\Loggable {
 
     }
 
+    public function setCacheDuration($duration)
+    {
+
+        $this->cacheDuration = $duration;
+
+    }
+
     public function setCacheLocation($cacheLocation)
     {
 
         if($cacheLocation && !file_exists($cacheLocation)) {
 
-            $ok = mkdir($cacheLocation);
+            $ok = mkdir($cacheLocation, 0777, true);
 
             if(!$ok) {
 

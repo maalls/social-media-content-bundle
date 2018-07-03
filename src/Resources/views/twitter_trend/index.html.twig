@@ -1,0 +1,26 @@
+{% extends '@SocialMediaContent/base.html.twig' %}
+
+{% block breadcrumb %}
+    {{ include('@SocialMediaContent/breadcrumb.html.twig', { levels: [{name: 'Trends'}] })}}
+{% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Trending now in Japan <small> last update {{ datetime | ago }}</small></h5>
+                    <!--div class="ibox-tools">
+                        <a href="" class="btn btn-primary btn-xs">Create new project</a>
+                    </div-->
+                </div>
+                <div class="ibox-content">
+                    
+
+                    {{ include('@SocialMediaContent/twitter_trend/list.html.twig', {'trends': trends }) }}
+                </div>
+            </div>
+    </div>
+
+{% endblock %}

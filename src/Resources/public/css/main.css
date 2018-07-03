@@ -1,0 +1,8 @@
+.ct-series-a .ct-line {
+  /* Set the colour of this series line */
+  stroke: red;
+  /* Control the thikness of your lines */
+  stroke-width: 2px;
+  stroke-linecap: square;
+  
+}

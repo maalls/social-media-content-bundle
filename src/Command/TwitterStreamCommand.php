@@ -32,7 +32,7 @@ class TwitterStreamCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
-        $this->stream->setLog(new LoggerOutputAdapter($output));
+        $this->stream->setLogger(new LoggerOutputAdapter($output));
         $this->stream->consume();
 
 
