@@ -16,21 +16,23 @@ Influencer Soome
               AD+
             </div>
         </li>
-        <li>
-            <a href="{{ path('twitter_users') }}"><i class="fa fa-users"></i> <span class="nav-label">Twitter Users</span></a>
-        </li>
-        <li>
-            <a href="{{ path('twitter_tweets') }}"><i class="fa fa-twitter"></i> <span class="nav-label">Tweets</span></a>
-        </li>
-        <li>
-            <a href="{{ path('tags') }}"><i class="fa fa-tag"></i> <span class="nav-label">Tags</span></a>
-        </li>
-        <li>
-            <a href="{{ path('twitter_trends') }}"><i class="fa fa-line-chart"></i> <span class="nav-label">Trends</span></a>
-        </li>
-        <li class="">
-            <a href=""><i class="fa fa-cog"></i> <span class="nav-label">Settings</span></a>
-        </li>
+        {% 
+
+            set nav = [
+                { path: 'twitter_users', label: 'Twitter Users', icon: 'users' },
+                { path: 'twitter_tweets', label: 'Tweets', icon: 'twitter' },
+                { path: 'tags', label: 'Tags', icon: 'tag' },
+                { path: 'twitter_trends', label: 'Trends', icon: 'line-chart' },
+                { path: 'smc_home', label: 'Settings', icon: 'cog' }
+            ]
+
+        %}
+        {% for item in nav %}
+            <li class="{{ app.request.attributes.get('_route') matches '/^' ~ item.path ~ '/' ? 'active' : '' }}">
+                <a href="{{ path(item.path) }}"><i class="fa fa-{{ item.icon }}"></i> <span class="nav-label">{{ item.label }}</span></a>
+            </li>
+        {% endfor %}
+        
     </ul>
 {% endblock %}
 
