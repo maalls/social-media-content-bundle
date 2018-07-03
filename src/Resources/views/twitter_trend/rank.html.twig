@@ -1,0 +1,23 @@
+<div class="project-list">
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Volume</th>
+                <th>link</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trend in trends %}
+                <tr>
+                    <td>{{ trend.rank }}</td>
+                    <td><a href="{{ path('twitter_trends_show', {name: trend.name }) }}">{{ trend.name }}</a></td>
+                    <td>{{ trend.tweetVolume ? trend.tweetVolume | number_format : '-' }}</td>
+                    <td><a target="_blank" href="https://twitter.com/search?q={{ trend.name | url_encode }}"><i class="fa fa-external-link"></i></a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

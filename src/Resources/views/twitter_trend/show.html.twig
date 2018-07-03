@@ -57,7 +57,7 @@
             ['date', 'Rank'],
 
             {% for trend in trends %}
-                ['{{ trend.datetime.format('h:i') }}', {{ trend.rank }}] {% if not loop.last %},{% endif %}
+                [new Date('{{ trend.datetime.format("Y-m-dTh:i:00") }}'), {{ trend.rank }}] {% if not loop.last %},{% endif %}
             {% endfor %}
 
           ];
@@ -67,10 +67,20 @@
                 title: '',
                 legend: { position: 'none' },
                 vAxis: { 
+                    title: 'Rank',
+                    direction: -1,
+                    
+
                     viewWindow:{
                         
-                        min:0
-                    }
+                        min:1
+                        
+
+                    },
+                    step: 1,
+
+                    max: 50,
+                    format: '0'
                 },
                 chartArea: {'width': '80%', 'height': '80%'}
 

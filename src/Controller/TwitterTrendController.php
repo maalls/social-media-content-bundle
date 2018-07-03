@@ -39,7 +39,30 @@ class TwitterTrendController extends Controller
 
         }
 
-        return ["trends" => $trends, "datetime" => $lastTrend->getDatetime()];
+        $qb = $rep
+            ->createQueryBuilder("t")
+            ->select("t.name, min(t.rank) as rank")
+            ->groupBy("t.name")
+            ->orderBy("t.name", "ASC");
+
+        $search = $request->query->get("search");
+
+        if($search) {
+
+            $qb->andWhere("t.name LIKE :name")
+                ->setParameter("name", "%$search%");
+
+        }
+        
+        $query = $qb->getQuery();
+        $paginator  = $this->get('knp_paginator');
+        $pagination = $paginator->paginate(
+            $query, 
+            $request->query->getInt('page', 1),
+            50
+        );
+
+        return ["search" => $search, "recent" => $trends, "datetime" => $lastTrend->getDatetime(), "all" => $pagination];
 
     }
 

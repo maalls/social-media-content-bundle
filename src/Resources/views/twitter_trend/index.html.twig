@@ -18,9 +18,34 @@
                 <div class="ibox-content">
                     
 
-                    {{ include('@SocialMediaContent/twitter_trend/list.html.twig', {'trends': trends }) }}
+                    {{ include('@SocialMediaContent/twitter_trend/rank.html.twig', {'trends': recent }) }}
                 </div>
             </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>All past Trends</h5>
+                    <!--div class="ibox-tools">
+                        <a href="" class="btn btn-primary btn-xs">Create new project</a>
+                    </div-->
+                </div>
+                <div class="ibox-content">
+                    
+                    <form>
+                        <div class="m-b-lg">
+
+                           <div class="input-group"><input type="text" name="search" value="{{ search }}" placeholder="Search" class="form-control-sm form-control"> <span class="input-group-btn">
+                                    <input type="submit" class="btn btn-sm btn-primary" value="Go" /> </span></div>
+
+                           
+                        </div>
+                    </form>
+                    {{ include('@SocialMediaContent/twitter_trend/list.html.twig', {'trends': all }) }}
+                </div>
+            </div>
+        </div>
     </div>
 
 {% endblock %}
