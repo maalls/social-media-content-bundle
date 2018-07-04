@@ -33,7 +33,6 @@ class TwitterUserController extends Controller
             ->getRepository(TwitterUser::class)
             ->createQueryBuilder("u")
             ->where("u.lang = 'ja'")
-            ->setMaxResults(10000)
             ->orderBy("u.score", "DESC");
 
         $search = $request->query->get("search");
@@ -45,8 +44,12 @@ class TwitterUserController extends Controller
 
         }
 
-        
+        $countQb = clone $qb;
+
+        $count = $countQb->select("count(u)")->getQuery()->getSingleScalarResult();
+
         $query = $qb->getQuery();
+        $query->setHint('knp_paginator.count', $count);
         $paginator  = $this->get('knp_paginator');
         $pagination = $paginator->paginate(
             $query, 
