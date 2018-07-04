@@ -47,7 +47,7 @@ class TwitterUserController extends Controller
         $countQb = clone $qb;
 
         $count = $countQb->select("count(u)")->getQuery()->getSingleScalarResult();
-
+        
         $query = $qb->getQuery();
         $query->setHint('knp_paginator.count', $count);
         $paginator  = $this->get('knp_paginator');

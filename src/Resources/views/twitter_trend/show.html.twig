@@ -57,7 +57,7 @@
             ['date', 'Rank'],
 
             {% for trend in trends %}
-                [new Date('{{ trend.datetime.format("Y-m-dTh:i:00") }}'), {{ trend.rank }}] {% if not loop.last %},{% endif %}
+                [new Date('{{ trend.datetime.format("Y-m-dTH:i:00") }}'), {{ trend.rank }}] {% if not loop.last %},{% endif %} {{ '\n' }}
             {% endfor %}
 
           ];
