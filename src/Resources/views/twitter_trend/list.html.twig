@@ -16,7 +16,7 @@
 
                 {% for trend in trends %}
                     <tr>
-                        <td><a href="{{ path('twitter_trends_show', {name: trend.name }) }}">{{ trend.name }}</a></td>
+                        <td><a href="{{ path('twitter_trends_show', {name: trend.name, woeid: trend.woeid }) }}">{{ trend.name }}</a></td>
                         <td>{{ trend.rank }}</td>
                         <td><a target="_blank" href="https://twitter.com/search?q={{ trend.name | url_encode }}"><i class="fa fa-external-link"></i></a></td>
                     </tr>

@@ -3,32 +3,29 @@
     Trends - Soome
 {% endblock %}
 {% block breadcrumb %}
-    {{ include('@SocialMediaContent/breadcrumb.html.twig', { levels: [{name: 'Trends'}] })}}
+    {{ include('@SocialMediaContent/breadcrumb.html.twig', { levels: [{name: 'Trends', link: path('twitter_trends')  }, {name: location.name }] })}}
 {% endblock %}
 
 {% block content %}
 
     <div class="row">
-        <div class="col-lg-2 col-md-2">
+        <div class="col-lg-5 col-md-6">
             <div class="ibox">
                 <div class="ibox-title">
-                    <h5>Locations</h5>
+                    <h5>Trending now <small> {% if datetime %}last update {{ datetime | ago }}</small>{% endif %}</h5>
                     <!--div class="ibox-tools">
                         <a href="" class="btn btn-primary btn-xs">Create new project</a>
                     </div-->
                 </div>
                 <div class="ibox-content">
-                    <ul>
-                        {% for location in locations %}
-                            <li><a href="{{ path('twitter_trends_location', {woeid: location.woeid }) }}">{{ location.name }}</a></li>
-                        {% endfor %}
-                   </ul>
+                    
 
+                    {{ include('@SocialMediaContent/twitter_trend/rank.html.twig', {'trends': recent }) }}
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-5 col-md-3">
+        <div class="col-lg-5 col-md-6">
             <div class="ibox">
                 <div class="ibox-title">
                     <h5>All past Trends</h5>
