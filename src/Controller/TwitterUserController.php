@@ -106,7 +106,7 @@ class TwitterUserController extends Controller
     {
 
         $followers_count = $user->getFollowersCount();
-        if($followers_count > 100000 && !$user->getFollowersUpdatedAt()) {
+        if($followers_count > 200000 && !$user->getFollowersUpdatedAt()) {
 
             throw new \Exception("To many followers.");
 
