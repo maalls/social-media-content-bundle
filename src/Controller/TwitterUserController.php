@@ -53,6 +53,15 @@ class TwitterUserController extends Controller
 
         }
 
+        $max_followers = $request->query->get("max_followers");
+
+        if($max_followers) {
+
+            $qb->andWhere("u.followers_count <= :max_followers")
+                ->setParameter("max_followers", $max_followers);
+
+        }
+
         $description = $request->query->get("description");
 
         if($description) {
