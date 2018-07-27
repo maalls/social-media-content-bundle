@@ -30,6 +30,7 @@
                                 <th>Rank</th>
                                 <th></th>
                                 <th>Name</th>
+                                <th>description</th>
                                 {% for h in [
                                     {label: 'Followers', field: 'followers_count'}, 
                                     {label: 'Following', field: 'friends_count'}, 
@@ -82,6 +83,10 @@
                                 
                                 
                                 
+                            </td>
+
+                            <td>
+                                {{ user.description }}
                             </td>
                            
                             <td class="text-right">

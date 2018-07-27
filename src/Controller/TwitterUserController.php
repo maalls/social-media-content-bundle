@@ -44,6 +44,25 @@ class TwitterUserController extends Controller
 
         }
 
+        $min_followers = $request->query->get("min_followers");
+
+        if($min_followers) {
+
+            $qb->andWhere("u.followers_count >= :min_followers")
+                ->setParameter("min_followers", $min_followers);
+
+        }
+
+        $description = $request->query->get("description");
+
+        if($description) {
+
+            $qb->andWhere("u.description LIKE :description")
+                ->setParameter("description", "%" . $description . "%");
+
+        }
+
+
         $countQb = clone $qb;
 
         $count = $countQb->select("count(u)")->getQuery()->getSingleScalarResult();
