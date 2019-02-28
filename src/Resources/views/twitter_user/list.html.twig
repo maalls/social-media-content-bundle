@@ -1,6 +1,6 @@
 <div class="ibox">
     <div class="ibox-title">
-        <h5>{{ pagination.getTotalItemCount | number_format }} Twitter accounts</h5>
+        <h5>{{ pagination.getTotalItemCount ? (pagination.getTotalItemCount | number_format) : '' }} Twitter accounts</h5>
         <!--div class="ibox-tools">
             <a href="" class="btn btn-primary btn-xs">Create new project</a>
         </div-->

@@ -32,8 +32,8 @@ class TwitterUserController extends Controller
             ->getManager()
             ->getRepository(TwitterUser::class)
             ->createQueryBuilder("u")
-            /*->where("u.lang = 'ja'")
-            ->orderBy("u.score", "DESC")*/
+            ->where("u.lang = 'ja'")
+            ->orderBy("u.score", "DESC")
         ;
 
         $search = $request->query->get("search");
@@ -75,7 +75,7 @@ class TwitterUserController extends Controller
 
         $countQb = clone $qb;
 
-        $count = $countQb->select("count(u)")->getQuery()->getSingleScalarResult();
+        $count = 0; //$countQb->select("count(u)")->getQuery()->getSingleScalarResult();
         
         $query = $qb->getQuery();
         $query->setHint('knp_paginator.count', $count);
