@@ -32,8 +32,9 @@ class TwitterUserController extends Controller
             ->getManager()
             ->getRepository(TwitterUser::class)
             ->createQueryBuilder("u")
-            ->where("u.lang = 'ja'")
-            ->orderBy("u.score", "DESC");
+            /*->where("u.lang = 'ja'")
+            ->orderBy("u.score", "DESC")*/
+        ;
 
         $search = $request->query->get("search");
 
