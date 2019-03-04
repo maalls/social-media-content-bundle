@@ -65,6 +65,17 @@ Influencer Soome
 
 {% block javascripts %}
 
+    {% if mouse_flow_id %}
+        <script type="text/javascript">
+            window._mfq = window._mfq || [];
+            (function() {
+                var mf = document.createElement("script");
+                mf.type = "text/javascript"; mf.async = true;
+                mf.src = "//cdn.mouseflow.com/projects/{{ mouseflowId }}.js";
+                document.getElementsByTagName("head")[0].appendChild(mf);
+            })();
+        </script>
+    {% endif %}
     <script src="{{ asset('bundles/socialmediacontent/js/base.js') }}"></script>
     {% block app_javascripts %}
     {% endblock %}
